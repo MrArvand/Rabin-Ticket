@@ -43,7 +43,30 @@ $code_karbar2_escaped = mysqli_real_escape_string($Link, $code_karbar2);
 $name_karbar2_escaped = mysqli_real_escape_string($Link, $name_karbar2);
 $matn_pasokh_escaped = mysqli_real_escape_string($Link, $matn_pasokh);
 
-$Qery="INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
+// Check if this is the first pasokh (reply) for this ticket
+// If ticket status is 'a' (ثبت اولیه), change it to 'm' (در حال بررسی) after first reply
+$is_first_reply = false;
+$current_ticket_status = $q_ticket['vaziat'] ?? '';
+
+// Check if there are any previous pasokh records (excluding the initial ticket creation pasokh)
+$query_pasokh_count = "SELECT COUNT(*) as pasokh_count FROM pasokh 
+                        WHERE code_ticket = '$code_ticket_escaped' 
+                        AND vaziat != 'a'";
+$pasokh_count = 0;
+if ($result_pasokh_count = mysqli_query($Link, $query_pasokh_count)) {
+    if ($row_count = mysqli_fetch_array($result_pasokh_count)) {
+        $pasokh_count = (int)$row_count['pasokh_count'];
+    }
+}
+
+// If this is the first reply (no previous pasokh with vaziat != 'a') and ticket status is 'a'
+if ($pasokh_count == 0 && $current_ticket_status === 'a') {
+    $is_first_reply = true;
+    // Update ticket status to 'm' (در حال بررسی)
+    $Qery = "UPDATE ticket SET vaziat = 'm' WHERE code = '$code_ticket_escaped'; ";
+}
+
+$Qery.="INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
 VALUES ('$code_pasokh_escaped', '$code_ticket_escaped', '$code_p_run_escaped', '$name_karbar_run_escaped', '$code_karbar2_escaped', '$name_karbar2_escaped', '$matn_pasokh_escaped', '$tarikh', '$saat', 'm', 'n', '', '', NULL);";
 
 

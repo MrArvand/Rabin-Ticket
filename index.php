@@ -64,7 +64,8 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
                     var systemPreference = 'dark'; // default
                     if (window.matchMedia) {
                         try {
-                            systemPreference = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+                            systemPreference = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' :
+                                'dark';
                         } catch (e) {
                             // matchMedia not supported
                         }
@@ -390,6 +391,15 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
                                 </a>
                             </li>
 
+                            <?php if ($code_p_run === "1100056"): ?>
+                                <li class="<?php echo ($page == 'manage_department_defaults') ? 'current-page' : ''; ?>">
+                                    <a href="?page=manage_department_defaults">
+                                        <i class="bi bi-building-gear"></i>
+                                        <span class="menu-text">کاربر پیش‌فرض دپارتمان‌ها</span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
                             <li class="<?php echo ($page == 'profile') ? 'current-page' : ''; ?>">
                                 <a href="?page=profile">
                                     <i class="bi bi-person-square"></i>
@@ -453,7 +463,8 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
                             <span class="dropdown">
                                 <button type="button" class="btn" id="fullscreen-toggle-btn" title="تمام صفحه">
                                     <span class="bi bi-fullscreen fs-5" id="fullscreen-icon-enter"></span>
-                                    <span class="bi bi-fullscreen-exit fs-5" id="fullscreen-icon-exit" style="display: none;"></span>
+                                    <span class="bi bi-fullscreen-exit fs-5" id="fullscreen-icon-exit"
+                                        style="display: none;"></span>
                                 </button>
                             </span>
 

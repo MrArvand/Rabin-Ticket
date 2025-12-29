@@ -31,8 +31,29 @@ $code_ticket=time()."-".rand(11,99);
 $log_txt="ایجاد . ثبت اولیه تیکت از طریق پنل پشتیبان در  $tarikh  - $saat";
 
 $tel_karbar = $_SESSION ['tel_k'];
-$Qery.="INSERT INTO `ticket` (`titr`, `olaviat`, `matn`, `code`, `code_p_karbar`, `name_karbar`,  `tel_karbar`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `daste`, `name_daste`, `name_sherkat`, `code_sherkat`, `code_p_karbar_anjam`, `name_karbar_anjam`, `tarikh_anjam`, `saat_anjam`, `log_txt`, `i_ticket`) 
-VALUES ('$titr', '$olaviat', '$matn', '$code_ticket', '$karbar_darkhast', '$name_karbar_darkhast','$tel_karbar', '$tarikh', '$saat', 'a', '$daste', '$daste', '$name_sherkar', '$sherkat', '', '', '', '', '$log_txt', NULL);";
+
+  // Check if department has a default user assigned
+  $default_user_code = '';
+  $default_user_name = '';
+  if (!empty($daste)) {
+    $daste_escaped = mysqli_real_escape_string($Link, $daste);
+    $query_default = "SELECT default_user_code, default_user_name FROM departman WHERE id = '$daste_escaped' AND vaziat = 'y' LIMIT 1";
+    if ($result_default = mysqli_query($Link, $query_default)) {
+      if ($row_default = mysqli_fetch_array($result_default)) {
+        if (!empty($row_default['default_user_code']) && !empty($row_default['default_user_name'])) {
+          $default_user_code = mysqli_real_escape_string($Link, $row_default['default_user_code']);
+          $default_user_name = mysqli_real_escape_string($Link, $row_default['default_user_name']);
+        }
+      }
+    }
+  }
+
+  // Auto-assign to default user if exists, otherwise leave empty (status remains 'a')
+  $code_p_karbar_anjam = $default_user_code;
+  $name_karbar_anjam = $default_user_name;
+
+  $Qery .= "INSERT INTO `ticket` (`titr`, `olaviat`, `matn`, `code`, `code_p_karbar`, `name_karbar`,  `tel_karbar`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `daste`, `name_daste`, `name_sherkat`, `code_sherkat`, `code_p_karbar_anjam`, `name_karbar_anjam`, `tarikh_anjam`, `saat_anjam`, `log_txt`, `i_ticket`) 
+VALUES ('$titr', '$olaviat', '$matn', '$code_ticket', '$karbar_darkhast', '$name_karbar_darkhast','$tel_karbar', '$tarikh', '$saat', 'a', '$daste', '$daste', '$name_sherkar', '$sherkat', '$code_p_karbar_anjam', '$name_karbar_anjam', '', '', '$log_txt', NULL);";
 
 $code_pasokh="G-".time()."-".rand(11,99);
 // این کوئری بررسی شود
@@ -112,6 +133,4 @@ header("location: ?page=start_ticket&p=n");
 }else{
 header("location: ?page=start_ticket&p=n");     
 }
- ?>
-
-
+?>

@@ -74,4 +74,15 @@ if ($page == "list_working_on") {
     exit;
 }
 
+// Admin-only page: manage_department_defaults (manage default users for departments)
+if ($page == "manage_department_defaults") {
+    $user_code = $_SESSION['code_p'] ?? null;
+    if ($user_code === "1100056") {
+        include('page/ui/manage_department_defaults.php');
+        exit;
+    }
+    include('page/ui/restricted.php');
+    exit;
+}
+
 ?>
