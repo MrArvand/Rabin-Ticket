@@ -1,0 +1,30 @@
+[01-Jul-2025 08:47:52 Asia/Tehran] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'y'  )' at line 1 in /home/requestr/public_html/page/ux/checklogin.php:28
+Stack trace:
+#0 /home/requestr/public_html/page/ux/checklogin.php(28): mysqli_query(Object(mysqli), 'SELECT*from kar...')
+#1 {main}
+  thrown in /home/requestr/public_html/page/ux/checklogin.php on line 28
+[01-Jul-2025 08:47:52 Asia/Tehran] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'y'  )' at line 1 in /home/requestr/public_html/page/ux/checklogin.php:28
+Stack trace:
+#0 /home/requestr/public_html/page/ux/checklogin.php(28): mysqli_query(Object(mysqli), 'SELECT*from kar...')
+#1 {main}
+  thrown in /home/requestr/public_html/page/ux/checklogin.php on line 28
+[01-Jul-2025 08:48:57 Asia/Tehran] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'y'  )' at line 1 in /home/requestr/public_html/page/ux/checklogin.php:28
+Stack trace:
+#0 /home/requestr/public_html/page/ux/checklogin.php(28): mysqli_query(Object(mysqli), 'SELECT*from kar...')
+#1 {main}
+  thrown in /home/requestr/public_html/page/ux/checklogin.php on line 28
+[15-Sep-2025 08:28:48 Asia/Tehran] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'y'  )' at line 1 in /home/requestr/public_html/page/ux/checklogin.php:28
+Stack trace:
+#0 /home/requestr/public_html/page/ux/checklogin.php(28): mysqli_query(Object(mysqli), 'SELECT*from kar...')
+#1 {main}
+  thrown in /home/requestr/public_html/page/ux/checklogin.php on line 28
+[13-Nov-2025 11:09:13 Asia/Tehran] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'y'  )' at line 1 in /home/requestr/public_html/page/ux/checklogin.php:32
+Stack trace:
+#0 /home/requestr/public_html/page/ux/checklogin.php(32): mysqli_query(Object(mysqli), 'SELECT*from kar...')
+#1 {main}
+  thrown in /home/requestr/public_html/page/ux/checklogin.php on line 32
+[13-Nov-2025 11:09:16 Asia/Tehran] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'y'  )' at line 1 in /home/requestr/public_html/page/ux/checklogin.php:32
+Stack trace:
+#0 /home/requestr/public_html/page/ux/checklogin.php(32): mysqli_query(Object(mysqli), 'SELECT*from kar...')
+#1 {main}
+  thrown in /home/requestr/public_html/page/ux/checklogin.php on line 32

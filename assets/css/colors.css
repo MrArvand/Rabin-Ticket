@@ -1,0 +1,315 @@
+/**
+ * Color Variables System for Rabin-Ticket
+ * Supports Dark and Light themes
+ * 
+ * Usage: Use CSS variables instead of hardcoded colors
+ * Example: color: var(--color-text-primary);
+ */
+
+/* Default dark theme - applied to :root */
+:root,
+html:not([data-theme]),
+html[data-theme="dark"],
+.theme-dark {
+  /* ============================================
+     PRIMARY COLORS
+     ============================================ */
+  --color-primary: #3c92b1;
+  --color-primary-dark: #2d7a93;
+  --color-primary-light: #6fb4ce;
+  --color-primary-rgb: 60, 146, 177;
+  
+  /* ============================================
+     SECONDARY COLORS
+     ============================================ */
+  --color-secondary: #50596a;
+  --color-secondary-dark: #3d4552;
+  --color-secondary-light: #6a7384;
+  --color-secondary-rgb: 80, 89, 106;
+  
+  /* ============================================
+     SEMANTIC COLORS
+     ============================================ */
+  --color-success: #a9bd7a;
+  --color-success-dark: #8fa066;
+  --color-success-light: #c4d49a;
+  --color-success-rgb: 169, 189, 122;
+  
+  --color-danger: #bf7a6a;
+  --color-danger-dark: #a5685a;
+  --color-danger-light: #d99a8a;
+  --color-danger-rgb: 191, 122, 106;
+  
+  --color-warning: #d2a968;
+  --color-warning-dark: #b8904f;
+  --color-warning-light: #e6c287;
+  --color-warning-rgb: 210, 169, 104;
+  
+  --color-info: #6fb4ce;
+  --color-info-dark: #5a9bb5;
+  --color-info-light: #8ccde7;
+  --color-info-rgb: 111, 180, 206;
+  
+  /* ============================================
+     BOOTSTRAP COMPATIBLE COLORS
+     ============================================ */
+  --color-blue: #0d6efd;
+  --color-indigo: #6610f2;
+  --color-purple: #6f42c1;
+  --color-pink: #d63384;
+  --color-red: #dc3545;
+  --color-orange: #fd7e14;
+  --color-yellow: #ffc107;
+  --color-green: #198754;
+  --color-teal: #20c997;
+  --color-cyan: #0dcaf0;
+  
+  /* ============================================
+     NEUTRAL COLORS - DARK THEME (Default)
+     ============================================ */
+  --color-black: #111419;
+  --color-white: #ffffff;
+  --color-gray: #a5adbc;
+  --color-gray-dark: #d7dce5;
+  
+  /* Gray Scale - Dark Theme */
+  --color-gray-100: #20252e;
+  --color-gray-200: #353c48;
+  --color-gray-300: #495160;
+  --color-gray-400: #6a7384;
+  --color-gray-500: #868fa0;
+  --color-gray-600: #a5adbc;
+  --color-gray-700: #bec5d1;
+  --color-gray-800: #d7dce5;
+  --color-gray-900: #edf0f5;
+  
+  /* ============================================
+     BACKGROUND COLORS - DARK THEME
+     ============================================ */
+  --color-bg-primary: #1c1f21;
+  --color-bg-secondary: #262b33;
+  --color-bg-tertiary: #20252e;
+  --color-bg-card: #303641;
+  --color-bg-surface: #353c48;
+  --color-bg-hover: rgba(255, 255, 255, 0.05);
+  --color-bg-active: rgba(255, 255, 255, 0.1);
+  
+  /* ============================================
+     TEXT COLORS - DARK THEME
+     ============================================ */
+  --color-text-primary: #95a0b1;
+  --color-text-secondary: #6a7384;
+  --color-text-muted: #868fa0;
+  --color-text-disabled: #495160;
+  --color-text-inverse: #ffffff;
+  
+  /* ============================================
+     BORDER COLORS - DARK THEME
+     ============================================ */
+  --color-border-primary: #50596a;
+  --color-border-secondary: #495160;
+  --color-border-tertiary: #353c48;
+  --color-border-light: rgba(255, 255, 255, 0.1);
+  --color-border-dark: rgba(0, 0, 0, 0.2);
+  
+  /* ============================================
+     SHADOW COLORS - DARK THEME
+     ============================================ */
+  --color-shadow-sm: rgba(0, 0, 0, 0.1);
+  --color-shadow-md: rgba(0, 0, 0, 0.2);
+  --color-shadow-lg: rgba(0, 0, 0, 0.3);
+  --color-shadow-xl: rgba(0, 0, 0, 0.4);
+  
+  /* ============================================
+     OVERLAY COLORS
+     ============================================ */
+  --color-overlay-light: rgba(0, 0, 0, 0.15);
+  --color-overlay-medium: rgba(0, 0, 0, 0.25);
+  --color-overlay-dark: rgba(0, 0, 0, 0.5);
+  --color-overlay-darker: rgba(0, 0, 0, 0.75);
+  
+  /* ============================================
+     BADGE SOFT COLORS - DARK THEME
+     ============================================ */
+  --color-badge-primary-bg: rgba(60, 146, 177, 0.2);
+  --color-badge-primary-text: #6fb4ce;
+  
+  --color-badge-success-bg: rgba(169, 189, 122, 0.2);
+  --color-badge-success-text: #a9bd7a;
+  
+  --color-badge-warning-bg: rgba(210, 169, 104, 0.2);
+  --color-badge-warning-text: #d2a968;
+  
+  --color-badge-danger-bg: rgba(191, 122, 106, 0.2);
+  --color-badge-danger-text: #bf7a6a;
+  
+  --color-badge-info-bg: rgba(111, 180, 206, 0.2);
+  --color-badge-info-text: #6fb4ce;
+  
+  --color-badge-secondary-bg: rgba(108, 117, 125, 0.2);
+  --color-badge-secondary-text: #6c757d;
+  
+  /* ============================================
+     LOGIN PAGE COLORS
+     ============================================ */
+  --color-login-primary: #2563eb;
+  --color-login-primary-dark: #1d4ed8;
+  --color-login-primary-light: #3b82f6;
+  --color-login-secondary: #1e40af;
+  --color-login-accent: #60a5fa;
+  --color-login-gradient-start: #2563eb;
+  --color-login-gradient-end: #1e40af;
+  --color-login-text-primary: #1f2937;
+  --color-login-text-secondary: #6b7280;
+  --color-login-bg-primary: #f8fafc;
+  --color-login-bg-secondary: #ffffff;
+  --color-login-border: #e5e7eb;
+  --color-login-error-bg: #fef2f2;
+  --color-login-error-border: #fecaca;
+  --color-login-error-text: #dc2626;
+  
+  /* ============================================
+     THEME META
+     ============================================ */
+  --theme-name: 'dark';
+  --theme-meta-color: #1c1f21;
+}
+
+/* ============================================
+   LIGHT THEME OVERRIDES
+   ============================================ */
+[data-theme="light"],
+.theme-light {
+  /* ============================================
+     BACKGROUND COLORS - LIGHT THEME
+     ============================================ */
+  --color-bg-primary: #f8f9fa;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f1f3f5;
+  --color-bg-card: #ffffff;
+  --color-bg-surface: #f8f9fa;
+  --color-bg-hover: rgba(0, 0, 0, 0.04);
+  --color-bg-active: rgba(0, 0, 0, 0.08);
+  
+  /* ============================================
+     TEXT COLORS - LIGHT THEME
+     ============================================ */
+  --color-text-primary: #212529;
+  --color-text-secondary: #6c757d;
+  --color-text-muted: #868e96;
+  --color-text-disabled: #adb5bd;
+  --color-text-inverse: #ffffff;
+  
+  /* ============================================
+     BORDER COLORS - LIGHT THEME
+     ============================================ */
+  --color-border-primary: #dee2e6;
+  --color-border-secondary: #e9ecef;
+  --color-border-tertiary: #f1f3f5;
+  --color-border-light: rgba(0, 0, 0, 0.08);
+  --color-border-dark: rgba(0, 0, 0, 0.12);
+  
+  /* ============================================
+     SHADOW COLORS - LIGHT THEME
+     ============================================ */
+  --color-shadow-sm: rgba(0, 0, 0, 0.05);
+  --color-shadow-md: rgba(0, 0, 0, 0.1);
+  --color-shadow-lg: rgba(0, 0, 0, 0.15);
+  --color-shadow-xl: rgba(0, 0, 0, 0.2);
+  
+  /* ============================================
+     OVERLAY COLORS - LIGHT THEME
+     ============================================ */
+  --color-overlay-light: rgba(0, 0, 0, 0.05);
+  --color-overlay-medium: rgba(0, 0, 0, 0.1);
+  --color-overlay-dark: rgba(0, 0, 0, 0.3);
+  --color-overlay-darker: rgba(0, 0, 0, 0.5);
+  
+  /* ============================================
+     BADGE SOFT COLORS - LIGHT THEME
+     ============================================ */
+  --color-badge-primary-bg: rgba(13, 110, 253, 0.1);
+  --color-badge-primary-text: #0d6efd;
+  
+  --color-badge-success-bg: rgba(25, 135, 84, 0.1);
+  --color-badge-success-text: #198754;
+  
+  --color-badge-warning-bg: rgba(255, 193, 7, 0.1);
+  --color-badge-warning-text: #ffc107;
+  
+  --color-badge-danger-bg: rgba(220, 53, 69, 0.1);
+  --color-badge-danger-text: #dc3545;
+  
+  --color-badge-info-bg: rgba(13, 202, 240, 0.1);
+  --color-badge-info-text: #0dcaf0;
+  
+  --color-badge-secondary-bg: rgba(108, 117, 125, 0.1);
+  --color-badge-secondary-text: #6c757d;
+  
+  /* ============================================
+     THEME META
+     ============================================ */
+  --theme-name: 'light';
+  --theme-meta-color: #ffffff;
+}
+
+/* ============================================
+   UTILITY CLASSES FOR COMMON COLOR PATTERNS
+   ============================================ */
+.bg-primary-color {
+  background-color: var(--color-primary) !important;
+}
+
+.bg-secondary-color {
+  background-color: var(--color-secondary) !important;
+}
+
+.text-primary-color {
+  color: var(--color-text-primary) !important;
+}
+
+.text-secondary-color {
+  color: var(--color-text-secondary) !important;
+}
+
+.border-primary-color {
+  border-color: var(--color-border-primary) !important;
+}
+
+/* Badge Soft Variants */
+.badge-soft-primary {
+  background: var(--color-badge-primary-bg);
+  color: var(--color-badge-primary-text);
+  border: 1px solid var(--color-badge-primary-text);
+}
+
+.badge-soft-success {
+  background: var(--color-badge-success-bg);
+  color: var(--color-badge-success-text);
+  border: 1px solid var(--color-badge-success-text);
+}
+
+.badge-soft-warning {
+  background: var(--color-badge-warning-bg);
+  color: var(--color-badge-warning-text);
+  border: 1px solid var(--color-badge-warning-text);
+}
+
+.badge-soft-danger {
+  background: var(--color-badge-danger-bg);
+  color: var(--color-badge-danger-text);
+  border: 1px solid var(--color-badge-danger-text);
+}
+
+.badge-soft-info {
+  background: var(--color-badge-info-bg);
+  color: var(--color-badge-info-text);
+  border: 1px solid var(--color-badge-info-text);
+}
+
+.badge-soft-secondary {
+  background: var(--color-badge-secondary-bg);
+  color: var(--color-badge-secondary-text);
+  border: 1px solid var(--color-badge-secondary-text);
+}
+

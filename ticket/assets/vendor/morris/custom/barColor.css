@@ -1,0 +1,18 @@
+
+@font-face {
+    font-family: 'IranYekanNum';
+    src: url('../IranYekan/IRANYekanBold\(FaNum\).ttf');
+    src: url('../IranYekan/IRANYekanBold\(FaNum\).ttf') format('woff2'), url('../IranYekan/IRANYekanBold\(FaNum\).ttf') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+
+.morris-hover.morris-default-style {
+    font-family: 'IranYekanNum';
+}
+
+.morris-axis-labels {
+    font-family: 'IranYekanNum';
+}

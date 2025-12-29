@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket System API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            background: #fafafa;
+        }
+
+        .swagger-ui .topbar {
+            background-color: #1c1f21;
+        }
+
+        .swagger-ui .topbar .download-url-wrapper {
+            display: none;
+        }
+
+        .swagger-ui .topbar .topbar-wrapper {
+            max-width: none;
+        }
+
+        .swagger-ui .topbar .topbar-wrapper .link {
+            content: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMjAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8dGV4dCB4PSIxMCIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iI2ZmZmZmZiI+U3VwcG9ydCBUaWNrZXQgQVBJPC90ZXh0Pgo8L3N2Zz4K');
+            width: 200px;
+            height: 40px;
+        }
+
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .custom-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .custom-header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .api-info {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .api-info h2 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .api-info h3 {
+            color: #555;
+            margin-top: 20px;
+        }
+
+        .api-info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .api-info li {
+            margin: 5px 0;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .endpoint-list {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .endpoint-item {
+            margin: 10px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+
+        .method-get {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .status-codes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .status-code {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .status-200 {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-400 {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-401 {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-404 {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-429 {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-500 {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function () {
+            const ui = SwaggerUIBundle({
+                url: './swagger.json',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                validatorUrl: null,
+                tryItOutEnabled: true,
+                supportedSubmitMethods: ['get'],
+                onComplete: function () {
+                    console.log('Swagger UI loaded successfully');
+                },
+                onFailure: function (data) {
+                    console.error('Failed to load Swagger UI:', data);
+                }
+            });
+
+            // Add custom styling for Persian text
+            const style = document.createElement('style');
+            style.textContent = `
+                .swagger-ui .opblock-description-wrapper p,
+                .swagger-ui .opblock-summary-description,
+                .swagger-ui .model-example,
+                .swagger-ui .response-col_description__inner p {
+                    direction: rtl;
+                    text-align: right;
+                    font-family: 'Tahoma', 'Arial', sans-serif;
+                }
+                .swagger-ui .opblock-description-wrapper p:not(:lang(fa)),
+                .swagger-ui .opblock-summary-description:not(:lang(fa)),
+                .swagger-ui .model-example:not(:lang(fa)),
+                .swagger-ui .response-col_description__inner p:not(:lang(fa)) {
+                    direction: ltr;
+                    text-align: left;
+                }
+            `;
+            document.head.appendChild(style);
+        };
+    </script>
+</body>
+
+</html>

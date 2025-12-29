@@ -1,0 +1,926 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ticket System REST API",
+    "description": "A read-only REST API for accessing ticket data from the Rahbarian Industrial Holding ticket system. This API provides access to ticket information, responses, and file attachments.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@rahbarian.ir"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://rahbarian.ir"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://request-r.ir/api/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost/api/v1",
+      "description": "Development server"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/tickets": {
+      "get": {
+        "summary": "Get All Tickets",
+        "description": "Returns a list of all tickets with basic information including title, priority, status, requester, company, and current handler.",
+        "operationId": "getAllTickets",
+        "tags": ["Tickets"],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with list of tickets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Tickets retrieved successfully"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-01-01 12:00:00"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TicketBasic"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Tickets retrieved successfully",
+                  "timestamp": "2024-01-01 12:00:00",
+                  "data": [
+                    {
+                      "ticket_code": "T-1234567890-12",
+                      "title": "مشکل در سیستم ورود",
+                      "priority": "1",
+                      "priority_label": "ضروری",
+                      "status": "m",
+                      "status_label": "درحال بررسی",
+                      "requester_name": "احمد محمدی",
+                      "company_name": "شرکت رهباریان",
+                      "department": "پشتیبانی فناوری اطلاعات",
+                      "current_handler": "علی رضایی",
+                      "request_date": "1403-07-21",
+                      "request_time": "14:30"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/tickets/today": {
+      "get": {
+        "summary": "Get Today's Tickets",
+        "description": "Returns a list of tickets created on the current day (Persian calendar). For BPMS API key users, only shows tickets with replies from specific authorized users.",
+        "operationId": "getTodayTickets",
+        "tags": ["Tickets"],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with list of today's tickets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Today's tickets retrieved successfully"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-01-01 12:00:00"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TicketBasic"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Today's tickets retrieved successfully",
+                  "timestamp": "2024-01-01 12:00:00",
+                  "data": [
+                    {
+                      "ticket_code": "T-1234567890-12",
+                      "title": "مشکل در سیستم ورود",
+                      "priority": "1",
+                      "priority_label": "ضروری",
+                      "status": "m",
+                      "status_label": "درحال بررسی",
+                      "requester_name": "احمد محمدی",
+                      "company_name": "شرکت رهباریان",
+                      "department": "پشتیبانی فناوری اطلاعات",
+                      "current_handler": "علی رضایی",
+                      "request_date": "1403-07-21",
+                      "request_time": "14:30"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/tickets/{code}": {
+      "get": {
+        "summary": "Get Single Ticket Details",
+        "description": "Returns detailed information for a specific ticket including full description, requester details, company information, responses, and file attachments.",
+        "operationId": "getTicketByCode",
+        "tags": ["Tickets"],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "description": "Unique ticket code identifier",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9\\-_]+$",
+              "example": "T-1234567890-12"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with detailed ticket information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Ticket details retrieved successfully"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-01-01 12:00:00"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TicketFull"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Ticket details retrieved successfully",
+                  "timestamp": "2024-01-01 12:00:00",
+                  "data": {
+                    "ticket_code": "T-1234567890-12",
+                    "title": "مشکل در سیستم ورود",
+                    "description": "کاربران نمی‌توانند با رمز عبور جدید وارد سیستم شوند",
+                    "priority": "1",
+                    "priority_label": "ضروری",
+                    "requester": {
+                      "code": "12345",
+                      "name": "احمد محمدی",
+                      "phone": "09123456789"
+                    },
+                    "company": {
+                      "code": "C001",
+                      "name": "شرکت رهباریان"
+                    },
+                    "request_date": "1403-07-21",
+                    "request_time": "14:30",
+                    "current_handler": {
+                      "code": "54321",
+                      "name": "علی رضایی"
+                    },
+                    "status": "m",
+                    "status_label": "درحال بررسی",
+                    "department": "پشتیبانی فناوری اطلاعات",
+                    "attachments": [
+                      {
+                        "code": "F-1234567890-12",
+                        "title": "تصویر خطا",
+                        "type": "jpg",
+                        "size": "1024",
+                        "url": "https://request-r.ir/files/peyvast/F-1234567890-12.jpg",
+                        "status": "y"
+                      }
+                    ],
+                    "responses": [
+                      {
+                        "code": "G-1234567890-12",
+                        "author": "علی رضایی",
+                        "message": "مشکل بررسی شد. لطفاً رمز عبور را مجدداً تنظیم کنید.",
+                        "date": "1403-07-21",
+                        "time": "15:00",
+                        "is_read": "y",
+                        "read_date": "1403-07-21",
+                        "read_time": "15:30"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/tickets/{code}/responses": {
+      "get": {
+        "summary": "Get Ticket Responses",
+        "description": "Returns all responses and replies for a specific ticket, including author information, message content, timestamps, and read status.",
+        "operationId": "getTicketResponses",
+        "tags": ["Tickets"],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "description": "Unique ticket code identifier",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9\\-_]+$",
+              "example": "T-1234567890-12"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with ticket responses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Ticket responses retrieved successfully"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-01-01 12:00:00"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TicketResponse"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Ticket responses retrieved successfully",
+                  "timestamp": "2024-01-01 12:00:00",
+                  "data": [
+                    {
+                      "code": "G-1234567890-12",
+                      "author": "علی رضایی",
+                      "message": "مشکل بررسی شد. لطفاً رمز عبور را مجدداً تنظیم کنید.",
+                      "date": "1403-07-21",
+                      "time": "15:00",
+                      "is_read": "y",
+                      "read_date": "1403-07-21",
+                      "read_time": "15:30"
+                    },
+                    {
+                      "code": "G-1234567890-13",
+                      "author": "احمد محمدی",
+                      "message": "ممنون از پیگیری. مشکل حل شد.",
+                      "date": "1403-07-21",
+                      "time": "16:00",
+                      "is_read": "n",
+                      "read_date": "",
+                      "read_time": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/tickets/{code}/files": {
+      "get": {
+        "summary": "Get Ticket File Attachments",
+        "description": "Returns all file attachments associated with a specific ticket, including file metadata and download URLs.",
+        "operationId": "getTicketFiles",
+        "tags": ["Tickets"],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "description": "Unique ticket code identifier",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9\\-_]+$",
+              "example": "T-1234567890-12"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with ticket file attachments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Ticket files retrieved successfully"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-01-01 12:00:00"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TicketFile"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Ticket files retrieved successfully",
+                  "timestamp": "2024-01-01 12:00:00",
+                  "data": [
+                    {
+                      "code": "F-1234567890-12",
+                      "title": "تصویر خطا",
+                      "type": "jpg",
+                      "size": "1024",
+                      "url": "https://request-r.ir/files/peyvast/F-1234567890-12.jpg",
+                      "status": "y"
+                    },
+                    {
+                      "code": "F-1234567890-13",
+                      "title": "فایل لاگ سیستم",
+                      "type": "txt",
+                      "size": "2048",
+                      "url": "https://request-r.ir/files/peyvast/F-1234567890-13.txt",
+                      "status": "y"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Returns the current health status of the API service. This endpoint can be used for monitoring and load balancer health checks.",
+        "operationId": "healthCheck",
+        "tags": ["System"],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API is healthy and operational",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "healthy"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-01-01 12:00:00"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "data": {
+                    "status": "healthy",
+                    "timestamp": "2024-01-01 12:00:00"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for authentication. Contact administrator to obtain your API key."
+      }
+    },
+    "schemas": {
+      "TicketBasic": {
+        "type": "object",
+        "properties": {
+          "ticket_code": {
+            "type": "string",
+            "description": "Unique ticket identifier",
+            "example": "T-1234567890-12"
+          },
+          "title": {
+            "type": "string",
+            "description": "Ticket title/subject",
+            "example": "مشکل در سیستم ورود"
+          },
+          "priority": {
+            "type": "string",
+            "description": "Priority level code",
+            "enum": ["1", "2", "3", "4"],
+            "example": "1"
+          },
+          "priority_label": {
+            "type": "string",
+            "description": "Human-readable priority level",
+            "enum": ["ضروری", "متوسط", "معمولی", "پایین"],
+            "example": "ضروری"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current ticket status code",
+            "enum": ["a", "m", "b", "k", "c", "t"],
+            "example": "m"
+          },
+          "status_label": {
+            "type": "string",
+            "description": "Human-readable status",
+            "enum": ["ثبت اولیه", "درحال بررسی", "بسته شده", "انجام شده", "کنسل شده", "بررسی مجدد"],
+            "example": "درحال بررسی"
+          },
+          "requester_name": {
+            "type": "string",
+            "description": "Name of the person who created the ticket",
+            "example": "احمد محمدی"
+          },
+          "company_name": {
+            "type": "string",
+            "description": "Name of the company associated with the ticket",
+            "example": "شرکت رهباریان"
+          },
+          "department": {
+            "type": "string",
+            "description": "Department handling the ticket",
+            "example": "پشتیبانی فناوری اطلاعات"
+          },
+          "current_handler": {
+            "type": "string",
+            "description": "Name of the person currently handling the ticket",
+            "example": "علی رضایی"
+          },
+          "request_date": {
+            "type": "string",
+            "description": "Date when the ticket was created (Persian calendar)",
+            "example": "1403-07-21"
+          },
+          "request_time": {
+            "type": "string",
+            "description": "Time when the ticket was created",
+            "example": "14:30"
+          }
+        }
+      },
+      "TicketFull": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TicketBasic"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "description": "Detailed description of the ticket issue",
+                "example": "کاربران نمی‌توانند با رمز عبور جدید وارد سیستم شوند"
+              },
+              "requester": {
+                "$ref": "#/components/schemas/Requester"
+              },
+              "company": {
+                "$ref": "#/components/schemas/Company"
+              },
+              "current_handler": {
+                "$ref": "#/components/schemas/Handler"
+              },
+              "attachments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TicketFile"
+                }
+              },
+              "responses": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TicketResponse"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Requester": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Requester's employee code",
+            "example": "12345"
+          },
+          "name": {
+            "type": "string",
+            "description": "Requester's full name",
+            "example": "احمد محمدی"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Requester's phone number",
+            "example": "09123456789"
+          }
+        }
+      },
+      "Company": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Company code",
+            "example": "C001"
+          },
+          "name": {
+            "type": "string",
+            "description": "Company name",
+            "example": "شرکت رهباریان"
+          }
+        }
+      },
+      "Handler": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Handler's employee code",
+            "example": "54321"
+          },
+          "name": {
+            "type": "string",
+            "description": "Handler's full name",
+            "example": "علی رضایی"
+          }
+        }
+      },
+      "TicketResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique response identifier",
+            "example": "G-1234567890-12"
+          },
+          "author": {
+            "type": "string",
+            "description": "Name of the person who wrote the response",
+            "example": "علی رضایی"
+          },
+          "message": {
+            "type": "string",
+            "description": "Response message content",
+            "example": "مشکل بررسی شد. لطفاً رمز عبور را مجدداً تنظیم کنید."
+          },
+          "date": {
+            "type": "string",
+            "description": "Date when the response was created (Persian calendar)",
+            "example": "1403-07-21"
+          },
+          "time": {
+            "type": "string",
+            "description": "Time when the response was created",
+            "example": "15:00"
+          },
+          "is_read": {
+            "type": "string",
+            "description": "Whether the response has been read",
+            "enum": ["y", "n"],
+            "example": "y"
+          },
+          "read_date": {
+            "type": "string",
+            "description": "Date when the response was read (Persian calendar)",
+            "example": "1403-07-21"
+          },
+          "read_time": {
+            "type": "string",
+            "description": "Time when the response was read",
+            "example": "15:30"
+          }
+        }
+      },
+      "TicketFile": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique file identifier",
+            "example": "F-1234567890-12"
+          },
+          "title": {
+            "type": "string",
+            "description": "File name or title",
+            "example": "تصویر خطا"
+          },
+          "type": {
+            "type": "string",
+            "description": "File extension/type",
+            "example": "jpg"
+          },
+          "size": {
+            "type": "string",
+            "description": "File size in bytes",
+            "example": "1024"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Direct download URL for the file",
+            "example": "https://request-r.ir/files/peyvast/F-1234567890-12.jpg"
+          },
+          "status": {
+            "type": "string",
+            "description": "File status",
+            "enum": ["y", "n"],
+            "example": "y"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message describing what went wrong"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01 12:00:00"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional error details (optional)"
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequestError": {
+        "description": "Bad request - Invalid parameters or malformed request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "error",
+              "message": "Invalid ticket code format",
+              "timestamp": "2024-01-01 12:00:00"
+            }
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "description": "Unauthorized - Invalid or missing API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "error",
+              "message": "API key is required. Please provide X-API-Key header.",
+              "timestamp": "2024-01-01 12:00:00"
+            }
+          }
+        }
+      },
+      "NotFoundError": {
+        "description": "Not found - Requested resource does not exist",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "error",
+              "message": "Ticket not found",
+              "timestamp": "2024-01-01 12:00:00"
+            }
+          }
+        }
+      },
+      "RateLimitError": {
+        "description": "Too many requests - Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "error",
+              "message": "Rate limit exceeded. Too many requests.",
+              "timestamp": "2024-01-01 12:00:00"
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Internal server error - Something went wrong on the server",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "error",
+              "message": "Internal server error: Database connection failed",
+              "timestamp": "2024-01-01 12:00:00"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Tickets",
+      "description": "Operations related to ticket management and retrieval"
+    },
+    {
+      "name": "System",
+      "description": "System health and status operations"
+    }
+  ]
+}
+

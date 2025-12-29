@@ -1,0 +1,41 @@
+.morris-hover {
+	position: absolute;
+	z-index: 1000;
+	font-family: 'IranYekanNum';
+}
+.morris-hover.morris-default-style {
+	border-radius: 8px;
+	padding: 10px 20px;
+	color: #ffffff;
+	background: #000000;
+	box-shadow: 0 0 40px rgba(51, 51, 51, 0.15);
+	font-size: 13px;
+	font-family: 'IranYekanNum';
+	text-align: center;
+}
+.morris-hover.morris-default-style .morris-hover-row-label {
+	font-weight: bold;
+	margin: 0.25em 0;
+	font-family: 'IranYekanNum';
+}
+.morris-hover.morris-default-style .morris-hover-point {
+	white-space: nowrap;
+	margin: 0.1em 0;
+	font-family: 'IranYekanNum';
+}
+
+.morris-hover-row-label{
+	font-family: 'IranYekanNum';
+	font-weight: bold;
+}
+
+.morris-hover-point{
+	font-weight: bold;
+	font-family: 'IranYekanNum';
+
+}
+
+.morris-chart-month-label {
+    font-family: 'IranYekanNum' !important;
+    font-size: 13px;
+}

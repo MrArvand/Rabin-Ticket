@@ -1,0 +1,163 @@
+/* Light/Dark theme overrides without touching existing minified CSS */
+
+/* Default: assume existing styles are dark-oriented. We add explicit classes. */
+
+/* Light theme base */
+.theme-light {
+	background-color: #f8f9fa;
+	color: #212529;
+}
+
+/* Layout containers */
+.theme-light .page-wrapper,
+.theme-light .main-container,
+.theme-light .app-container,
+.theme-light .app-body,
+.theme-light .app-hero-header,
+.theme-light .app-footer {
+	background-color: #f8f9fa;
+	color: #212529;
+}
+
+/* Header */
+.theme-light .app-header {
+	background-color: #ffffff;
+	color: #212529;
+	border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+/* Sidebar */
+.theme-light .sidebar-wrapper {
+	background-color: #ffffff;
+	color: #212529;
+	border-inline-end: 1px solid rgba(0,0,0,.06);
+}
+.theme-light .sidebar-menu li a {
+	color: #212529;
+}
+.theme-light .sidebar-menu li a:hover {
+	background-color: rgba(0,0,0,.04);
+}
+.theme-light .sidebar-menu li.current-page > a {
+	background-color: rgba(13,110,253,.12);
+	color: #0d6efd;
+}
+
+/* Cards and surfaces */
+.theme-light .card,
+.theme-light .dropdown-menu,
+.theme-light .modal-content,
+.theme-light .offcanvas,
+.theme-light .list-group-item {
+	background-color: #ffffff;
+	color: #212529;
+	border-color: rgba(0,0,0,.08);
+}
+
+/* Tables */
+.theme-light table,
+.theme-light .table {
+	color: #212529;
+	background-color: #ffffff;
+}
+.theme-light .table thead th {
+	background-color: #f1f3f5;
+	color: #212529;
+}
+
+/* Forms */
+.theme-light .form-control,
+.theme-light .form-select,
+.theme-light .input-group-text {
+	background-color: #ffffff;
+	color: #212529;
+	border-color: rgba(0,0,0,.12);
+}
+.theme-light .form-control:focus,
+.theme-light .form-select:focus {
+	border-color: #86b7fe;
+	box-shadow: 0 0 0 .2rem rgba(13,110,253,.25);
+}
+
+/* Buttons keep Bootstrap defaults; just ensure outline contrasts */
+.theme-light .btn-outline-info,
+.theme-light .btn-outline-secondary {
+	color: #0c5460;
+	border-color: #0dcaf0;
+}
+.theme-light .btn-outline-info:hover,
+.theme-light .btn-outline-secondary:hover {
+	background-color: rgba(13,202,240,.12);
+}
+
+/* Text utility compromises */
+.theme-light .text-white { color: #ffffff !important; }
+.theme-light .text-muted { color: #6c757d !important; }
+
+/* Links */
+.theme-light a { color: #0d6efd; }
+.theme-light a:hover { color: #0a58ca; }
+
+/* Badges/labels that depend on dark bg */
+.theme-light .count-label { background-color: #dc3545; }
+
+/* Optional: explicit dark class to enforce original look when toggled back */
+.theme-dark { color-scheme: dark; }
+
+/* Enforce light colors for card header/footer */
+.theme-light .card .card-header,
+.theme-light .card-header {
+	background-color: #ffffff !important;
+	color: #212529 !important;
+	border-bottom: 1px solid rgba(0,0,0,.08) !important;
+}
+.theme-light .card .card-footer,
+.theme-light .card-footer {
+	background-color: #ffffff !important;
+	color: #212529 !important;
+	border-top: 1px solid rgba(0,0,0,.08) !important;
+}
+
+/* Tables: cells and borders */
+.theme-light table,
+.theme-light .table {
+	background-color: #ffffff !important;
+	color: #212529 !important;
+}
+.theme-light .table th,
+.theme-light .table td,
+.theme-light table th,
+.theme-light table td {
+	background-color: #ffffff !important;
+	color: #212529 !important;
+	border-color: rgba(0,0,0,.12) !important;
+}
+.theme-light .table thead th {
+	background-color: #f1f3f5 !important;
+	color: #212529 !important;
+}
+.theme-light .table-bordered,
+.theme-light .table-bordered > :not(caption) > * {
+	border-color: rgba(0,0,0,.12) !important;
+}
+.theme-light .table-striped > tbody > tr:nth-of-type(odd) > * {
+	background-color: #f8f9fa !important;
+}
+.theme-light .table-hover > tbody > tr:hover > * {
+	background-color: #eef2f7 !important;
+}
+
+/* App brand areas */
+.theme-light .app-brand,
+.theme-light .app-brand-sm {
+	background-color: #ffffff !important;
+	color: #212529 !important;
+}
+.theme-light .app-brand a,
+.theme-light .app-brand-sm a {
+	color: #212529 !important;
+}
+.theme-light .app-brand .logo,
+.theme-light .app-brand-sm .logo {
+	filter: none !important;
+}

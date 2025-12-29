@@ -1,0 +1,107 @@
+# PHP Handler for Laragon/Apache
+# Laragon typically handles PHP automatically, but this ensures proper MIME type
+<IfModule mod_php.c>
+  AddHandler application/x-httpd-php .php
+</IfModule>
+
+<IfModule mod_php7.c>
+  AddHandler application/x-httpd-php .php
+</IfModule>
+
+<IfModule mod_php8.c>
+  AddHandler application/x-httpd-php .php
+</IfModule>
+
+# Alternative: Force PHP handler if mod_php is not available
+<FilesMatch \.php$>
+  SetHandler application/x-httpd-php
+</FilesMatch>
+
+# =====================================================
+# PERFORMANCE OPTIMIZATIONS
+# =====================================================
+
+# Enable GZIP compression
+<IfModule mod_deflate.c>
+  # Compress HTML, CSS, JavaScript, Text, XML and fonts
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+  AddOutputFilterByType DEFLATE application/xml application/xhtml+xml
+  AddOutputFilterByType DEFLATE font/ttf font/otf font/woff font/woff2
+  AddOutputFilterByType DEFLATE image/svg+xml
+
+  # Remove browser bugs (only needed for really old browsers)
+  BrowserMatch ^Mozilla/4 gzip-only-text/html
+  BrowserMatch ^Mozilla/4\.0[678] no-gzip
+  BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+  Header append Vary User-Agent
+</IfModule>
+
+# Browser caching - significantly improves page load on return visits
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Default expiry: 1 month
+  ExpiresDefault "access plus 1 month"
+
+  # HTML - shorter cache (content changes frequently)
+  ExpiresByType text/html "access plus 0 seconds"
+
+  # CSS and JavaScript - cache for 1 month
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType application/x-javascript "access plus 1 month"
+
+  # Images - cache for 1 year
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+
+  # Fonts - cache for 1 year
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/otf "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType application/font-woff "access plus 1 year"
+  ExpiresByType application/font-woff2 "access plus 1 year"
+
+  # Data files
+  ExpiresByType application/json "access plus 0 seconds"
+  ExpiresByType application/xml "access plus 0 seconds"
+  ExpiresByType text/xml "access plus 0 seconds"
+</IfModule>
+
+# Alternative cache control headers
+<IfModule mod_headers.c>
+  # Cache static assets for 1 year
+  <FilesMatch "\.(ico|jpg|jpeg|png|gif|svg|webp|js|css|woff|woff2|ttf|otf)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Don't cache HTML or PHP
+  <FilesMatch "\.(html|htm|php)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # Security headers
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-XSS-Protection "1; mode=block"
+
+  # Remove ETags (when using expires headers, ETags are not needed)
+  Header unset ETag
+</IfModule>
+
+# Disable ETags
+FileETag None
+
+# Keep-Alive - improves connection reuse
+<IfModule mod_headers.c>
+  Header set Connection keep-alive
+</IfModule>
