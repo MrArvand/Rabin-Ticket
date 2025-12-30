@@ -32,17 +32,29 @@ $log_txt="ایجاد . ثبت اولیه تیکت از طریق پنل پشتی�
 
 $tel_karbar = $_SESSION ['tel_k'];
 
-  // Check if department has a default user assigned
+  // Check if department has a default user assigned and get department name
   $default_user_code = '';
   $default_user_name = '';
+  $department_name = '';
+  $default_user_tel = '';
   if (!empty($daste)) {
     $daste_escaped = mysqli_real_escape_string($Link, $daste);
-    $query_default = "SELECT default_user_code, default_user_name FROM departman WHERE id = '$daste_escaped' AND vaziat = 'y' LIMIT 1";
+    $query_default = "SELECT name, default_user_code, default_user_name FROM departman WHERE id = '$daste_escaped' AND vaziat = 'y' LIMIT 1";
     if ($result_default = mysqli_query($Link, $query_default)) {
       if ($row_default = mysqli_fetch_array($result_default)) {
+        $department_name = $row_default['name'];
         if (!empty($row_default['default_user_code']) && !empty($row_default['default_user_name'])) {
           $default_user_code = mysqli_real_escape_string($Link, $row_default['default_user_code']);
           $default_user_name = mysqli_real_escape_string($Link, $row_default['default_user_name']);
+          
+          // Get default user's phone number
+          $default_user_code_escaped = mysqli_real_escape_string($Link, $default_user_code);
+          $query_user_tel = "SELECT tel FROM karbar WHERE code_p = '$default_user_code_escaped' LIMIT 1";
+          if ($result_user_tel = mysqli_query($Link, $query_user_tel)) {
+            if ($row_user_tel = mysqli_fetch_array($result_user_tel)) {
+              $default_user_tel = $row_user_tel['tel'];
+            }
+          }
         }
       }
     }
@@ -105,26 +117,41 @@ VALUES ('$code_ticket', '$code_pasokh', '$code_file', '$titr', '$kind_file', '$h
 
 if ($Link->multi_query($Qery ) === TRUE) {	
     
+    // Include SMS helper function
+    require_once(__DIR__ . '/../../inf/s_sms.php');
     
- if($tel_karbar !="" ){   
-$username = "09154200964";
-$password = '83184017morteza';
-$from = "+985000125475";
-$pattern_code = "3il987e2pdej5ji";
-$to = array("$tel_karbar");
-$input_data = array("sn_ticket" => "$code_ticket");
-$url = "https://ippanel.com/patterns/pattern?username=" . $username . "&password=" . urlencode($password) . "&from=$from&to=" . json_encode($to) . "&input_data=" . urlencode(json_encode($input_data)) . "&pattern_code=$pattern_code";
-$handler = curl_init($url);
-curl_setopt($handler, CURLOPT_CUSTOMREQUEST, "POST");
-curl_setopt($handler, CURLOPT_POSTFIELDS, $input_data);
-curl_setopt($handler, CURLOPT_RETURNTRANSFER, true);
-$response = curl_exec($handler);
+    // Send SMS to ticket creator (if phone number exists)
+    if($tel_karbar !="" ){   
+        $username = "09154200964";
+        $password = '83184017morteza';
+        $from = "+985000125475";
+        $pattern_code = "3il987e2pdej5ji";
+        $to = array("$tel_karbar");
+        $input_data = array("sn_ticket" => "$code_ticket");
+        $url = "https://ippanel.com/patterns/pattern?username=" . $username . "&password=" . urlencode($password) . "&from=$from&to=" . json_encode($to) . "&input_data=" . urlencode(json_encode($input_data)) . "&pattern_code=$pattern_code";
+        $handler = curl_init($url);
+        curl_setopt($handler, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($handler, CURLOPT_POSTFIELDS, $input_data);
+        curl_setopt($handler, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($handler);
+    }
     
- }
-    
-    
-    
-    
+    // Send SMS to default user if assigned (using new IPPanel Edge API)
+    if (!empty($default_user_code) && !empty($default_user_tel)) {
+        // Prepare trimmed text for SMS
+        $titr_trimmed = trim_text($titr, 80);
+        
+        // Use department name or fallback to daste id
+        $display_department_name = !empty($department_name) ? $department_name : $daste;
+        
+        $sms_message = "📨 تیکت جدیدی برای دپارتمان " . $display_department_name . " ثبت شد.
+        
+شماره تیکت: " . $code_ticket . "
+عنوان تیکت: " . $titr_trimmed . "
+کاربر ثبت کننده: " . $name_karbar_darkhast;
+        
+        send_sms_ippanel($default_user_tel, $sms_message);
+    }
     
 header("location: ?page=new_gharardad&p=y");  
 }else{

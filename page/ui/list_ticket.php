@@ -74,6 +74,14 @@ if (isset($_POST['karbar_paziresh']) && $_POST['karbar_paziresh'] !== '') {
 }
 if ($karbar_paziresh === '0') $karbar_paziresh = '';
 
+$my_tickets_filter = '';
+if (isset($_POST['my_tickets_filter']) && $_POST['my_tickets_filter'] !== '') {
+    $my_tickets_filter = str_p('my_tickets_filter');
+} elseif (isset($_GET['my_tickets_filter']) && $_GET['my_tickets_filter'] !== '') {
+    $my_tickets_filter = str_g('my_tickets_filter');
+}
+if ($my_tickets_filter === '0' || $my_tickets_filter === 'all') $my_tickets_filter = '';
+
 $per_page_input = '';
 if (isset($_POST['per_page']) && $_POST['per_page'] !== '') {
     $per_page_input = str_p('per_page');
@@ -311,6 +319,43 @@ if ($page_number < 1) {
     .ticket-title-link:hover {
         color: var(--bs-primary);
     }
+
+    .chip-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid var(--color-border-primary, var(--bs-border-color));
+        background: var(--color-bg-card, var(--bs-card-bg));
+        color: var(--color-text-primary, var(--bs-body-color));
+        text-decoration: none;
+        font-family: 'IranYekanNum', sans-serif;
+    }
+
+    .chip-button:hover {
+        background: var(--color-bg-hover, var(--bs-tertiary-bg));
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px var(--color-shadow-sm, rgba(0, 0, 0, 0.1));
+        color: var(--color-text-primary, var(--bs-body-color));
+        text-decoration: none;
+    }
+
+    .chip-button.active {
+        background: var(--color-primary, var(--bs-primary));
+        color: var(--color-white, #ffffff);
+        border-color: var(--color-primary, var(--bs-primary));
+        box-shadow: 0 2px 8px var(--color-shadow-md, rgba(13, 110, 253, 0.2));
+    }
+
+    .chip-button.active:hover {
+        background: var(--color-primary-dark, var(--bs-primary));
+        color: var(--color-white, #ffffff);
+        box-shadow: 0 4px 12px var(--color-shadow-lg, rgba(13, 110, 253, 0.3));
+    }
 </style>
 
 <div class="row gx-3">
@@ -475,6 +520,7 @@ if ($page_number < 1) {
                     </div>
 
                     <input type="hidden" name="page_number" id="page_number" value="<?php echo $page_number; ?>">
+                    <input type="hidden" name="my_tickets_filter" id="my_tickets_filter" value="<?php echo htmlspecialchars($my_tickets_filter, ENT_QUOTES, 'UTF-8'); ?>">
 
                     <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top"
                         style="border-color: var(--bs-border-color) !important;">
@@ -521,6 +567,26 @@ if ($page_number < 1) {
             // Preserve all form values when submitting for pagination
             filterForm.submit();
         };
+
+        window.setMyTicketsFilter = function(filterValue) {
+            if (!filterForm) {
+                return;
+            }
+            var filterField = document.getElementById('my_tickets_filter');
+            if (filterField) {
+                // Toggle: if clicking the same filter, clear it
+                if (filterField.value === filterValue) {
+                    filterField.value = '';
+                } else {
+                    filterField.value = filterValue;
+                }
+                // Reset to page 1 when changing filter
+                if (pageField) {
+                    pageField.value = '1';
+                }
+                filterForm.submit();
+            }
+        };
     })();
 </script>
 
@@ -532,6 +598,20 @@ if ($page_number < 1) {
                     <i class="bi bi-list-task text-primary"></i>
                     لیست تیکت‌ها
                 </h5>
+                <div class="d-flex gap-2">
+                    <a href="#" 
+                       class="chip-button <?php echo ($my_tickets_filter === 'sent') ? 'active' : ''; ?>"
+                       onclick="event.preventDefault(); setMyTicketsFilter('sent');">
+                        <i class="bi bi-send me-1"></i>
+                        تیکت‌های ارسالی من
+                    </a>
+                    <a href="#" 
+                       class="chip-button <?php echo ($my_tickets_filter === 'received') ? 'active' : ''; ?>"
+                       onclick="event.preventDefault(); setMyTicketsFilter('received');">
+                        <i class="bi bi-inbox me-1"></i>
+                        تیکت‌های دریافتی من
+                    </a>
+                </div>
             </div>
             <div class="modern-card-body p-0">
                 <div class="table-responsive">
@@ -593,6 +673,15 @@ if ($page_number < 1) {
                                 $shart = $shart . "AND (name_karbar_anjam like '%$karbar_paziresh_escaped%' OR code_p_karbar_anjam like '%$karbar_paziresh_escaped%') ";
                             }
 
+                            // Apply my tickets filter
+                            if ($my_tickets_filter === "sent") {
+                                $code_p_run_escaped = mysqli_real_escape_string($Link, $code_p_run);
+                                $shart = $shart . "AND code_p_karbar = '$code_p_run_escaped' ";
+                            } elseif ($my_tickets_filter === "received") {
+                                $code_p_run_escaped = mysqli_real_escape_string($Link, $code_p_run);
+                                $shart = $shart . "AND code_p_karbar_anjam = '$code_p_run_escaped' ";
+                            }
+
                             if ($kind != "0" and $kind != "all" and  $kind != "") {
                                 $shart = $shart . "AND daste = '$kind' ";
                             }
@@ -648,6 +737,7 @@ if ($page_number < 1) {
                             if (!empty($titr)) $list_state_params['titr'] = $titr;
                             if (!empty($karbar_ersal)) $list_state_params['karbar_ersal'] = $karbar_ersal;
                             if (!empty($karbar_paziresh)) $list_state_params['karbar_paziresh'] = $karbar_paziresh;
+                            if (!empty($my_tickets_filter)) $list_state_params['my_tickets_filter'] = $my_tickets_filter;
                             if ($per_page !== 50) $list_state_params['per_page'] = $per_page_selected_value;
                             if ($page_number > 1) $list_state_params['page_number'] = $page_number;
                             if (!empty($kind)) $list_state_params['kind'] = $kind;

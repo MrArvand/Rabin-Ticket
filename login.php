@@ -625,7 +625,7 @@
         <!-- Form starts -->
         <form action="page/ux/checklogin.php" method="post" class="login-card">
           <!-- Logo starts -->
-          <a href="index.php" class="auth-logo">
+          <a href="support.php" class="auth-logo">
             <img src="assets/images/logo.png" alt="سامانه تیکت پشتیبانی فراهم" />
           </a>
           <!-- Logo ends -->

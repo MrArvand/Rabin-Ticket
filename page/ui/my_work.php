@@ -411,6 +411,24 @@ $jam_emroz = 0;
                         <tbody>
                         <?php
                             $shomare = 0;
+                            
+                            // Build lookup arrays for departments and companies
+                            $departments_lookup = [];
+                            $Query_dep_lookup = "SELECT id, name FROM departman WHERE vaziat = 'y'";
+                            if ($Result_dep_lookup = mysqli_query($Link, $Query_dep_lookup)) {
+                                while ($dep_row = mysqli_fetch_array($Result_dep_lookup)) {
+                                    $departments_lookup[$dep_row['id']] = $dep_row['name'];
+                                }
+                            }
+                            
+                            $companies_lookup = [];
+                            $Query_comp_lookup = "SELECT code, name FROM sherkatha";
+                            if ($Result_comp_lookup = mysqli_query($Link, $Query_comp_lookup)) {
+                                while ($comp_row = mysqli_fetch_array($Result_comp_lookup)) {
+                                    $companies_lookup[$comp_row['code']] = $comp_row['name'];
+                                }
+                            }
+                            
                             $Query_list = "SELECT*from karkerd where (code_p = '$code_p_run' )ORDER BY i_karkerd DESC LIMIT 1000";
         
                             if ($Result_list = mysqli_query($Link, $Query_list)) {
@@ -443,8 +461,16 @@ $jam_emroz = 0;
 	 ?>
                           <tr>
                                         <td><strong><?php echo $shomare; ?></strong></td>
-                                        <td><?php echo htmlspecialchars($q_kkk['daste']); ?></td>
-                                        <td><?php echo htmlspecialchars($q_kkk['mortabet']); ?></td>
+                                        <td><?php 
+                                            $dept_code = $q_kkk['daste'];
+                                            $dept_name = isset($departments_lookup[$dept_code]) ? $departments_lookup[$dept_code] : ($dept_code == 'n' ? 'بدون دسته بندی' : $dept_code);
+                                            echo htmlspecialchars($dept_name); 
+                                        ?></td>
+                                        <td><?php 
+                                            $comp_code = $q_kkk['mortabet'];
+                                            $comp_name = isset($companies_lookup[$comp_code]) ? $companies_lookup[$comp_code] : ($comp_code == 'n' ? 'غیر مرتبط' : $comp_code);
+                                            echo htmlspecialchars($comp_name); 
+                                        ?></td>
                                         <td><?php echo htmlspecialchars($q_kkk['tarikh_s']); ?></td>
                                         <td>
                                             <span class="badge bg-secondary">
@@ -587,11 +613,19 @@ if ($Result_list_modal = mysqli_query($Link, $Query_list_modal)) {
                                 </div>
                                 <div class="col-md-6">
                                     <strong class="text-muted d-block mb-1" style="font-size: 0.85rem;">دپارتمان:</strong>
-                                    <span><?php echo htmlspecialchars($q_modal['daste']); ?></span>
+                                    <span><?php 
+                                        $modal_dept_code = $q_modal['daste'];
+                                        $modal_dept_name = isset($departments_lookup[$modal_dept_code]) ? $departments_lookup[$modal_dept_code] : ($modal_dept_code == 'n' ? 'بدون دسته بندی' : $modal_dept_code);
+                                        echo htmlspecialchars($modal_dept_name); 
+                                    ?></span>
                                 </div>
                                 <div class="col-md-6">
                                     <strong class="text-muted d-block mb-1" style="font-size: 0.85rem;">شرکت:</strong>
-                                    <span><?php echo htmlspecialchars($q_modal['mortabet']); ?></span>
+                                    <span><?php 
+                                        $modal_comp_code = $q_modal['mortabet'];
+                                        $modal_comp_name = isset($companies_lookup[$modal_comp_code]) ? $companies_lookup[$modal_comp_code] : ($modal_comp_code == 'n' ? 'غیر مرتبط' : $modal_comp_code);
+                                        echo htmlspecialchars($modal_comp_name); 
+                                    ?></span>
                                 </div>
                             </div>
                             <hr class="my-3">

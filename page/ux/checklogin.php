@@ -44,7 +44,7 @@ if ($Result = mysqli_query($Link, $Query)) {
       $okvotod = "yes";
       $found = true;
 
-      header("location: ../../index.php");
+      header("location: ../../support.php");
       exit;
    }
 
@@ -63,4 +63,4 @@ if ($okvotod != "yes") {
    exit;
 }
 
-header("location: ../../index.php");
+header("location: ../../support.php");

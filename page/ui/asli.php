@@ -139,60 +139,74 @@ if($q_list['vaziat']=="k")$t_kol_anjam++;
             </div>
             <!-- Row end -->
 
+    <!-- Ticket Ordering Information Section -->
     <div class="card mb-3">
-                  <div class="card-header">
-                    <h5 class="card-title">لیست 20 پاسخ آخر</h5>
-                  </div>
-                  <div class="card-body">
-                    <div class="">
-                      <div class="my-2">
+      <div class="card-header">
+        <h5 class="card-title" style="color: var(--color-text-primary, var(--bs-body-color));">
+          <i class="bi bi-info-circle me-2" style="color: var(--color-info, var(--bs-info));"></i>ترتیب نمایش تیکت‌ها
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="alert mb-0" style="background: var(--color-badge-info-bg, rgba(111, 180, 206, 0.2)); color: var(--color-text-primary, var(--bs-body-color)); border: 1px solid var(--color-border-primary, var(--bs-border-color));">
+          <p class="mb-2"><strong style="color: var(--color-badge-info-text, var(--color-info, var(--bs-info)));">نحوه مرتب‌سازی و نمایش تیکت‌ها:</strong></p>
+          <ul class="mb-0 pe-3" style="color: var(--color-text-primary, var(--bs-body-color));">
+            <li class="mb-2">
+              در ابتدای لیست تیکت‌هایی را مشاهده می‌کنید که پاسخ‌دهنده آنها شما هستید و بعد از لیست فوق در صورت داشتن دسترسی تیکت‌های ثبت اولیه و سایر تیکت‌ها بر اساس تاریخ ثبت تیکت و تاریخ آخرین پاسخ درج شده در تیکت نمایش داده خواهند شد.
+            </li>
+            <li class="mb-0">
+              پیام‌های خوانده نشده ابتدا در بالاترین جایگاه قرار خواهند گرفت و پس از خوانده شدن به جایگاه خود بر اساس تاریخ و زمان منتقل خواهند شد.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- End Ticket Ordering Information Section -->
 
-                      <?php
-                      $monhh="مسئول پاسخگویی به";
-                      //
-								$shomare=0;
-								
-									// Select columns explicitly to avoid ambiguity with 'code' column in both tables
-									$Query_pasokh="SELECT pasokh.*, pasokh.code_ticket, ticket.code_p_karbar_anjam  
-FROM  ticket
-INNER JOIN  pasokh
-ON pasokh.code_ticket = ticket.code
-
-where ( ticket.code_p_karbar_anjam = '$code_p_run'  AND  pasokh.matn NOT like '%$monhh%'   )ORDER BY pasokh.i_pasokh DESC LIMIT 200";
-								
-								
-								
-						//		$Query_pasokh="SELECT*from pasokh where ((code_karbar2 = '$code_p_run' || code_karbar_sabt = '$code_p_run' )  AND  matn NOT like '%$monhh%'   )ORDER BY i_pasokh DESC LIMIT 200";
-   if($Result_pasokh=mysqli_query($Link,$Query_pasokh)){
- while($q_ticket2=mysqli_fetch_array($Result_pasokh)){
-	 $shomare++;
-	 // Use code_ticket instead of ambiguous 'code' column
-	 $code_pasokh=$q_ticket2['code_ticket'];
-
-   ?>
-
-                        <div class="activity-block d-flex position-relative">
-                          <img src="assets/images/user3.png" class="img-4x me-3 rounded-circle activity-user"
-                            alt="Admin Dashboard" />
-                          <div class="mb-3">
-                            <h5>
-                            <?php if($q_ticket2['oksee']=="y"){ ?>  
-                            <i title="<?php echo $q_ticket2['tarikh_see']; ?> - <?php echo $q_ticket2['saat_see']; ?> " class="fs-3 bi bi-eye"></i><?php }else{ ?>
-                            <i class="fs-3 bi bi-eye-slash"></i>
-                            <?php } 
-                            echo $q_ticket2['name_karbar_sabt']; ?> -  <?php echo $q_ticket2['name_karbar2']; ?></h5>
-                            <p><?php echo nl2br($q_ticket2['matn']); ?></p>
-                            
-
-                            <span class="badge bg-primary"><?php echo $q_ticket2['tarikh_sabt']; ?> - <?php echo $q_ticket2['saat_sabt']; ?> </span>
-                            <a href="?page=info_ticket&code=<?php  echo $q_ticket2['code_ticket']; ?>"><span class="btn btn-success">بررسی</span> </a>
-                          
-                          </div>  
-                        </div><hr>
-<?php }} 
-?>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+    <!-- Changelog Section -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5 class="card-title">
+          <i class="bi bi-journal-text me-2"></i>تغییرات اخیر سامانه
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="changelog-list">
+          
+          <div class="mb-3">
+            <h6 class="mb-2">
+              <span class="badge bg-primary me-2">نسخه 1.0.0</span>
+              <span class="text-muted small">دی ۱۴۰۴</span>
+            </h6>
+            <ul class="list-unstyled mb-0 pe-3">
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                بهبود ترتیب نمایش تیکتها (نمایش تیکتهای جدیدتر با پاسخهای خوانده نشده در ابتدای لیست)
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                افزودن سیستم خوانده نشده / خوانده شده برای پیام ها
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                فعالسازی اعلان پیامکی
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                تنظیم کاربر پذیرش پیش فرض برای هر دپارتمان و ارجاع اولیه مستقیم تیکت های هر دپارتمان به کاربر پیش فرض
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                اضافه شدن تم رنگی روشن (آزمایشی)
+              </li>
+              <li class="mb-0">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                رفع خطاها و ایرادات گزارش شده
+              </li>
+            </ul>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    <!-- End Changelog Section -->
                
