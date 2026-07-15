@@ -9,7 +9,8 @@ if(!isset($_SESSION ['code_p'])){ ?>
 
 if($page=="s_new_pasokh")include('page/ux/s_new_pasokh.php'); // ok
 
-if($page=="end_ticket")include('page/ux/end_ticket.php'); 
+if($page=="end_ticket")include('page/ux/end_ticket.php');
+if($page=="s_reopen_ticket")include('page/ux/s_reopen_ticket.php'); 
 if($page=="anjam_ticket")include('page/ux/anjam_ticket.php'); 
 if($page=="s_new_ticket")include('page/ux/s_new_ticket.php'); 
 

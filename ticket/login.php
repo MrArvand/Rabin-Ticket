@@ -8,9 +8,8 @@
   <meta name="theme-color" content="#059669">
   <!-- Meta -->
   <meta name="description" content="سامانه تیکت پشتیبانی فراهم - نسخه ویژه کاربران" />
-  <meta name="author" content="okteam" />
-  <link rel="canonical" href="https://request-r.ir/">
-  <meta property="og:url" content="https://request-r.ir/">
+  <link rel="canonical" href="https://rahbarianrabin.ir/">
+  <meta property="og:url" content="https://rahbarianrabin.ir/">
   <meta property="og:title" content="سامانه تیکت پشتیبانی فراهم - نسخه ویژه کاربران">
   <meta property="og:description" content="سامانه تیکت پشتیبانی فراهم - نسخه ویژه کاربران">
   <meta property="og:type" content="APP">
@@ -572,6 +571,34 @@
         transform: translateX(5px);
       }
     }
+
+
+    .btn-forget {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      color: #555;
+      background: #f5f5f5;
+      border: 1px dashed #ccc;
+      transition: all 0.25s ease;
+    }
+
+    .btn-forget:hover {
+      background: #fff;
+      color: #000;
+      border-color: #999;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-forget i {
+      font-size: 16px;
+    }
   </style>
 </head>
 
@@ -673,7 +700,13 @@
               </span>
               <span id="loginText">ورود به سیستم</span>
             </button>
+
+            <a href="https://paloodyar.ir/user/forget.php" class="btn-forget">
+              <i class="bi bi-key me-1"></i>
+              رمز عبور را فراموش کرده‌ام
+            </a>
           </div>
+
         </form>
         <!-- Form ends -->
       </div>

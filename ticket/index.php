@@ -1,6 +1,7 @@
 <?php
 
 include('inf/f1.php');
+ini_set('display_errors', 1); ini_set('display_startup_errors', 1); error_reporting(E_ALL);
 if (!isset($_SESSION['ok_login_i'])) {
   $_SESSION['ok_login_i'] = "n";
 }
@@ -41,7 +42,6 @@ if ($_SESSION['ok_login_i'] != 'y') {
     <meta name="theme-color" content="#1c1f21">
     <!-- Meta -->
     <meta name="description" content="ticket for rahbarian group" />
-    <meta name="author" content="okteam" />
     <link rel="canonical" href="https://request-r.ir/">
     <meta property="og:url" content="https://request-r.ir/">
     <meta property="og:title" content="سامانه تیکت پشتیبانی فراهم ">
@@ -265,11 +265,6 @@ if ($_SESSION['ok_login_i'] != 'y') {
           </div>
           <!-- App Hero header ends -->
 
-          <!-- App body starts -->
-
-          <div class="alert bg-danger alert-dismissible fade show" role="alert">
-            توجه : کلیه تیکت هایی که از آخرین پاسخ تیم رابین 30 روز گذشته باشد و پاسخی دیگر ثبت نشده باشد بصورت خودکار بسته خواهد شد
-          </div>
 
           <div class="app-body">
             <!-- Row start -->
@@ -290,11 +285,7 @@ if ($_SESSION['ok_login_i'] != 'y') {
           </div>
           <!-- App body ends -->
 
-          <!-- App footer start -->
-          <div class="app-footer">
-            <span>طراحی و اجرا : www.okteam.ir</span>
-          </div>
-          <!-- App footer end -->
+
 
         </div>
         <!-- App container ends -->

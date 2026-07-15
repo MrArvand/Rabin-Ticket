@@ -1,32 +1,84 @@
- <!-- Row start -->
-<strong class="text-center  text-warning">
-    توجه : 
-      از ابتدای مرداد ماه پر کردن گزارش کار روزانه در سامانه تیکت برای تمام پرسنل گروه های فناوری اطلاعات  شامل هوش تجاری - جریانکار - پشتیبانی - برنامه نویسی - سخت افزار و شبکه الزامی می باشد
-</strong>
  <?php
-$t_kol=0;
-$t_kol_m=0;
-$t_kol_ok=0;
-$t_kol_c=0;
-$t_kol_ej=0;
-$t_kol_t=0;
-$t_kol_anjam=0;
+// Get current user code
+$code_p_run = isset($_SESSION['code_p']) ? $_SESSION['code_p'] : '';
+$code_p_run_escaped = mysqli_real_escape_string($Link, $code_p_run);
 
-$Query_list="SELECT*from ticket where (1)ORDER BY i_ticket DESC LIMIT 10000";
-if($Result_list=mysqli_query($Link,$Query_list)){
-while($q_list=mysqli_fetch_array($Result_list)){
-	
-  $t_kol++;
+// Get today's date
+$tarikh_emroz = $tarikh; // Using global $tarikh variable
 
-if($q_list['vaziat']=="a")$t_kol_m++;
-if($q_list['vaziat']=="c")$t_kol_c++;
-if($q_list['vaziat']=="m")$t_kol_ej++;
-if($q_list['vaziat']=="t")$t_kol_t++;
-if($q_list['vaziat']=="b")$t_kol_ok++;
-if($q_list['vaziat']=="k")$t_kol_anjam++;
+// Statistics queries
+// 1. Total tickets
+$t_kol = 0;
+$Query_total = "SELECT COUNT(*) as total FROM ticket";
+if ($Result_total = mysqli_query($Link, $Query_total)) {
+    $row_total = mysqli_fetch_array($Result_total);
+    $t_kol = (int)$row_total['total'];
+}
 
+// 2. Unassigned tickets (waiting for distribution)
+$t_kol_m = 0;
+$Query_unassigned = "SELECT COUNT(*) as total FROM ticket WHERE (code_p_karbar_anjam = '' OR code_p_karbar_anjam IS NULL OR code_p_karbar_anjam = '0') AND vaziat != 'c'";
+if ($Result_unassigned = mysqli_query($Link, $Query_unassigned)) {
+    $row_unassigned = mysqli_fetch_array($Result_unassigned);
+    $t_kol_m = (int)$row_unassigned['total'];
+}
 
- }}
+// 3. Tickets assigned to current user (in progress)
+$t_kol_ej = 0;
+if (!empty($code_p_run)) {
+    $Query_my_tickets = "SELECT COUNT(*) as total FROM ticket WHERE code_p_karbar_anjam = '$code_p_run_escaped' AND vaziat IN ('m', 'w')";
+    if ($Result_my_tickets = mysqli_query($Link, $Query_my_tickets)) {
+        $row_my_tickets = mysqli_fetch_array($Result_my_tickets);
+        $t_kol_ej = (int)$row_my_tickets['total'];
+    }
+}
+
+// 4. Unread messages for current user
+$t_unread = 0;
+if (!empty($code_p_run)) {
+     $Query_unread = "SELECT COUNT(DISTINCT p.code_ticket) as total 
+                     FROM pasokh p 
+                     INNER JOIN ticket t ON p.code_ticket = t.code 
+                     WHERE p.oksee = 'n' 
+                     AND (t.code_p_karbar = '$code_p_run_escaped' OR t.code_p_karbar_anjam = '$code_p_run_escaped')
+                     AND (p.code_karbar_sabt IS NULL OR p.code_karbar_sabt = '' OR p.code_karbar_sabt != '$code_p_run_escaped')";
+    if ($Result_unread = mysqli_query($Link, $Query_unread)) {
+        $row_unread = mysqli_fetch_array($Result_unread);
+        $t_unread = (int)$row_unread['total'];
+    }
+}
+
+// 5. Today's tickets
+$t_today = 0;
+$Query_today = "SELECT COUNT(*) as total FROM ticket WHERE tarikh_sabt = '$tarikh_emroz'";
+if ($Result_today = mysqli_query($Link, $Query_today)) {
+    $row_today = mysqli_fetch_array($Result_today);
+    $t_today = (int)$row_today['total'];
+}
+
+// 6. High priority tickets (urgent)
+$t_urgent = 0;
+$Query_urgent = "SELECT COUNT(*) as total FROM ticket WHERE olaviat = '1' AND vaziat NOT IN ('b', 'c', 'k')";
+if ($Result_urgent = mysqli_query($Link, $Query_urgent)) {
+    $row_urgent = mysqli_fetch_array($Result_urgent);
+    $t_urgent = (int)$row_urgent['total'];
+}
+
+// 7. Completed tickets this month
+$t_kol_anjam = 0;
+$Query_completed = "SELECT COUNT(*) as total FROM ticket WHERE vaziat = 'k' AND tarikh_anjam LIKE '" . substr($tarikh_emroz, 0, 7) . "%'";
+if ($Result_completed = mysqli_query($Link, $Query_completed)) {
+    $row_completed = mysqli_fetch_array($Result_completed);
+    $t_kol_anjam = (int)$row_completed['total'];
+}
+
+// 8. Active departments
+$t_departments = 0;
+$Query_dep = "SELECT COUNT(*) as total FROM departman WHERE vaziat = 'y'";
+if ($Result_dep = mysqli_query($Link, $Query_dep)) {
+    $row_dep = mysqli_fetch_array($Result_dep);
+    $t_departments = (int)$row_dep['total'];
+}
 	 ?>
   <!-- Row start -->
   <div class="row gx-3">
@@ -35,98 +87,124 @@ if($q_list['vaziat']=="k")$t_kol_anjam++;
                   <div class="card-body">
                     <!-- Row start -->
                     <div class="row g-4">
-                      <div class="px-0 border-end col-xl-3 col-sm-6">
-                        <div class="text-center">
-                          <p class="m-0 small">تعداد کل تیکت</p>
-                          <h3 class="my-2"><?php echo $t_kol; ?></h3>
-                          <p class="m-0 small">
-                            <span class="text-danger me-1">
-                            <i class="bi bi-star"></i>
-                              <?php echo round( $t_kol/11,2); ?>%</span>
-                          میانگین تیم
-                           </p>
-                        </div>
-                      </div>
-                      <div class="px-0 border-end col-xl-3 col-sm-6">
-                        <div class="text-center">
-                          <p class="m-0 small">منتظر توزیع</p>
-                          <h3 class="my-2"><?php echo $t_kol_m; ?></h3>
-                          <p class="m-0 small">
-                            <span class="text-success me-1">
-                              <i class="bi bi-star"></i>
-                              <?php echo round( $t_kol_m/$t_kol,2); ?>%</span>
-                           میانگین از کل
-                           </p>
-                        </div>
-                      </div>
+                      <!-- Total Tickets -->
                       <div class="px-0 border-end col-xl-3 col-sm-6">
                         <div class="text-center">
                           <p class="m-0 small">
-                      در حال اجرا
+                            <i class="bi bi-ticket-perforated text-primary me-1"></i>تعداد کل تیکت
                           </p>
-                          <h3 class="my-2"><?php echo $t_kol_ej; ?></h3>
-                          <p class="m-0 small">
-                            <span class="text-success me-1">
-                              <i class="bi bi-star"></i>
-                              <?php echo round( $t_kol_ej/$t_kol,2); ?>%</span>
-                           میانگین از کل
-                           </p>
+                          <h3 class="my-2 text-primary"><?php echo number_format($t_kol); ?></h3>
+                          <p class="m-0 small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            تمام تیکت‌های ثبت شده
+                          </p>
                         </div>
                       </div>
 
-                   <div class="px-0 border-end col-xl-3 col-sm-6">
+                      <!-- Unassigned Tickets -->
+                      <div class="px-0 border-end col-xl-3 col-sm-6">
                         <div class="text-center">
-                          <p class="m-0 small">کنسل شده</p>
-                          <h3 class="my-2"><?php echo $t_kol_c; ?></h3>
                           <p class="m-0 small">
-                            <span class="text-success me-1">
-                              <i class="bi bi-star"></i>
-                              <?php echo round( $t_kol_c/$t_kol,2); ?>%</span>
-                           میانگین از کل
-                           </p>
+                            <i class="bi bi-hourglass-split text-warning me-1"></i>منتظر توزیع
+                          </p>
+                          <h3 class="my-2 text-warning"><?php echo number_format($t_kol_m); ?></h3>
+                          <p class="m-0 small text-muted">
+                            <?php if ($t_kol > 0): ?>
+                            <span class="text-warning me-1">
+                              <i class="bi bi-percent"></i>
+                              <?php echo number_format(($t_kol_m / $t_kol) * 100, 1); ?>%
+                            </span>
+                            <?php endif; ?>
+                            از کل تیکت‌ها
+                          </p>
                         </div>
                       </div>
 
-                      <div class="px-0 border-end  col-xl-3 col-sm-6">
+                      <!-- My Active Tickets -->
+                      <?php if (!empty($code_p_run)): ?>
+                      <div class="px-0 border-end col-xl-3 col-sm-6">
                         <div class="text-center">
-                          <p class="m-0 small">بررسی مجدد</p>
-                          <h3 class="my-2"><?php echo $t_kol_t; ?></h3>
                           <p class="m-0 small">
-                            <span class="text-success me-1">
-                              <i class="bi bi-star"></i>
-                              <?php echo round( $t_kol_t/$t_kol,2); ?>%</span>
-                           میانگین از کل
-                           </p>
-                        </div>
-                   
-                     </div>
-
-
-                      <div class="px-0 border-end   col-xl-3 col-sm-6">
-                        <div class="text-center">
-                          <p class="m-0 small">انجام شده</p>
-                          <h3 class="my-2"><?php echo $t_kol_anjam; ?></h3>
-                          <p class="m-0 small">
-                            <span class="text-success me-1">
-                              <i class="bi bi-star"></i>
-                              <?php echo round( $t_kol_anjam/$t_kol,2); ?>%</span>
-                           میانگین از کل
-                           </p>
+                            <i class="bi bi-briefcase text-info me-1"></i>تیکت‌های من
+                          </p>
+                          <h3 class="my-2 text-info"><?php echo number_format($t_kol_ej); ?></h3>
+                          <p class="m-0 small text-muted">
+                            <i class="bi bi-arrow-right-circle me-1"></i>
+                            در حال بررسی
+                          </p>
                         </div>
                       </div>
-                      
-                      
+                      <?php endif; ?>
 
-                      <div class="px-0 border-end   col-xl-3 col-sm-6">
+                      <!-- Unread Messages -->
+                      <?php if (!empty($code_p_run)): ?>
+                      <div class="px-0 border-end col-xl-3 col-sm-6">
                         <div class="text-center">
-                          <p class="m-0 small">بسته شده</p>
-                          <h3 class="my-2"><?php echo $t_kol_ok; ?></h3>
                           <p class="m-0 small">
-                            <span class="text-success me-1">
-                              <i class="bi bi-star"></i>
-                              <?php echo round( $t_kol_ok/$t_kol,2); ?>%</span>
-                           میانگین از کل
-                           </p>
+                            <i class="bi bi-envelope-exclamation text-danger me-1"></i>پیام‌های خوانده نشده
+                          </p>
+                          <h3 class="my-2 text-danger"><?php echo number_format($t_unread); ?></h3>
+                          <p class="m-0 small text-muted">
+                            <i class="bi bi-bell me-1"></i>
+                            نیاز به بررسی
+                          </p>
+                        </div>
+                      </div>
+                      <?php endif; ?>
+
+                      <!-- Today's Tickets -->
+                      <div class="px-0 border-end col-xl-3 col-sm-6">
+                        <div class="text-center">
+                          <p class="m-0 small">
+                            <i class="bi bi-calendar-day text-success me-1"></i>تیکت‌های امروز
+                          </p>
+                          <h3 class="my-2 text-success"><?php echo number_format($t_today); ?></h3>
+                          <p class="m-0 small text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            ثبت شده در <?php echo $tarikh_emroz; ?>
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Urgent Tickets -->
+                      <div class="px-0 border-end col-xl-3 col-sm-6">
+                        <div class="text-center">
+                          <p class="m-0 small">
+                            <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>تیکت‌های ضروری
+                          </p>
+                          <h3 class="my-2 text-danger"><?php echo number_format($t_urgent); ?></h3>
+                          <p class="m-0 small text-muted">
+                            <i class="bi bi-flag-fill me-1"></i>
+                            اولویت بالا
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Completed This Month -->
+                      <div class="px-0 border-end col-xl-3 col-sm-6">
+                        <div class="text-center">
+                          <p class="m-0 small">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>انجام شده این ماه
+                          </p>
+                          <h3 class="my-2 text-success"><?php echo number_format($t_kol_anjam); ?></h3>
+                          <p class="m-0 small text-muted">
+                            <i class="bi bi-calendar-month me-1"></i>
+                            ماه جاری
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Active Departments -->
+                      <div class="px-0 col-xl-3 col-sm-6">
+                        <div class="text-center">
+                          <p class="m-0 small">
+                            <i class="bi bi-building text-secondary me-1"></i>دپارتمان‌های فعال
+                          </p>
+                          <h3 class="my-2 text-secondary"><?php echo number_format($t_departments); ?></h3>
+                          <p class="m-0 small text-muted">
+                            <i class="bi bi-diagram-3 me-1"></i>
+                            واحدهای فعال
+                          </p>
                         </div>
                       </div>
 
@@ -174,7 +252,32 @@ if($q_list['vaziat']=="k")$t_kol_anjam++;
           
           <div class="mb-3">
             <h6 class="mb-2">
-              <span class="badge bg-primary me-2">نسخه 1.0.0</span>
+              <span class="badge bg-primary me-2">نسخه 1.0.1</span>
+              <span class="text-muted small">دی ۱۴۰۴</span>
+            </h6>
+            <ul class="list-unstyled mb-0 pe-3">
+              <li class="mb-2">
+                <i class="bi bi-plus-circle-fill text-info me-2"></i>
+                افزودن پاسخ های پیش فرض در صفحه مکالمه
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-bug-fill text-warning me-2"></i>
+                رفع باگ اسکرول پیامها در صفحه مکالمه
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-bug-fill text-warning me-2"></i>
+                رفع مشکل ناخوانا بودن نام ارسال کننده پیام و تاریخ ثبت پیام در صفحه مکالمه
+              </li>
+                <li class="mb-2">
+                <i class="bi bi-bug-fill text-warning me-2"></i>
+                رفع مشکل نمایش نام دپارتمان در صفحه تیکت  و لیست تیکت ها
+              </li>
+            </ul>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="mb-2">
+              <span class="badge bg-secondary me-2">نسخه 1.0.0</span>
               <span class="text-muted small">دی ۱۴۰۴</span>
             </h6>
             <ul class="list-unstyled mb-0 pe-3">

@@ -1,4 +1,5 @@
 <?php
+require_once(__DIR__ . '/../../../jaryanyar/api_functions.php');
 
 $code_ticket=str_g('code');
 $kind=str_g('kind');
@@ -17,6 +18,8 @@ while($q_gar=mysqli_fetch_array($Result_list)){
 
 
     $vaziat_ticket=$q_gar['vaziat'];
+    $daste_ticket=$q_gar['daste'];
+    $designer_ticket=$q_gar['code_p_karbar_anjam'];
 	
     $log_txt=$q_gar['log_txt'];
 
@@ -61,6 +64,12 @@ $revaziat2="k";
 
 $log_txt=$log_txt." تغییر وضعیت از  حالت  $name_vaziat  به  $name_vaziat_gha  در تاریخ  $tarikh - $saat  <br>";
 
+$code_ticket_escaped = mysqli_real_escape_string($Link, $code_ticket);
+$name_run = isset($_SESSION['name']) ? $_SESSION['name'] : 'کاربر';
+$code_p_run = isset($_SESSION['code_p']) ? $_SESSION['code_p'] : '';
+$name_run_escaped = mysqli_real_escape_string($Link, $name_run);
+$code_p_run_escaped = mysqli_real_escape_string($Link, $code_p_run);
+
 $Qery="UPDATE `ticket` SET
  `vaziat` = '$revaziat' 
 , `log_txt` = '$log_txt' 
@@ -74,17 +83,26 @@ $Qery="UPDATE `ticket` SET
   $Qery.="UPDATE `file_pasokh` SET
  `vaziat` = '$revaziat2' 
  WHERE `code_ticket` ='$code_ticket'; ";	
- 
- 
- 
- 
+
+// System message for تسک انجام شد (بسته شده)
+if ($kind == 'b') {
+    $code_pasokh_sys = 'G-' . time() . '-' . rand(11, 99);
+    $code_pasokh_sys_escaped = mysqli_real_escape_string($Link, $code_pasokh_sys);
+    $matn_sys = 'وضعیت تیکت توسط کاربر ' . $name_run . ' به «تسک انجام شد» (بسته شده) تغییر یافت.';
+    $matn_sys_escaped = mysqli_real_escape_string($Link, $matn_sys);
+    $Qery .= "INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `kind`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) ";
+    $Qery .= "VALUES ('$code_pasokh_sys_escaped', '$code_ticket_escaped', '$code_p_run_escaped', '$name_run_escaped', '', '', '$matn_sys_escaped', '$tarikh', '$saat', '$revaziat2', 'done', 'n', '', '', NULL); ";
+}
 
 if ($Link->multi_query($Qery ) === TRUE) {	
 
+    $apiResult = updateTicket($code_ticket);
+    if ($apiResult && !$apiResult['success']) {
+      error_log('Jaryanyar updateTicket failed for ' . $code_ticket . ': ' . ($apiResult['error'] ?? json_encode($apiResult['response'])));
+    }
 
-echo $Qery;
-	
-header("location: ?page=list_ticket&code=$code_ticket&p=y");  
+header("location: ?page=list_ticket&code=$code_ticket&p=y");
+exit;  
 }else{
 header("location: ?page=info_ticket&code=$code_ticket&p=n");  
  }}else{ 

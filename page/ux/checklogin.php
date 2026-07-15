@@ -39,6 +39,7 @@ if ($Result = mysqli_query($Link, $Query)) {
       $_SESSION['code_p'] = $modir['code_p'];
       $_SESSION['avatar'] = $modir['avatar'];
       $_SESSION['let'] = $modir['let'];
+      $_SESSION['kind'] = $modir['kind'];
 
       $_SESSION['ok_login_user_i'] = "y";
       $okvotod = "yes";

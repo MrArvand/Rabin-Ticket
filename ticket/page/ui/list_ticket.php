@@ -6,6 +6,7 @@ $tarikh_1 = str_p('tarikh_1');
 $tarikh_2 = str_p('tarikh_2');
 $sn_ticket = str_p('sn_ticket');
 ?>
+<link rel="stylesheet" href="assets/vendor/select2/select2.min.css" />
 <style>
     .modern-card {
         background: var(--bs-card-bg, #fff);
@@ -46,7 +47,8 @@ $sn_ticket = str_p('sn_ticket');
         margin-bottom: 8px;
     }
 
-    .form-control, .form-select {
+    .form-control,
+    .form-select {
         border-radius: 10px;
         padding: 10px 15px;
         border-color: var(--bs-border-color);
@@ -54,7 +56,8 @@ $sn_ticket = str_p('sn_ticket');
         background-color: var(--bs-body-bg);
     }
 
-    .form-control:focus, .form-select:focus {
+    .form-control:focus,
+    .form-select:focus {
         box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
         border-color: var(--bs-primary);
     }
@@ -74,7 +77,7 @@ $sn_ticket = str_p('sn_ticket');
         border-bottom: 2px solid var(--bs-border-color);
         white-space: nowrap;
     }
-    
+
     .modern-table tbody td {
         padding: 10px;
         vertical-align: middle;
@@ -100,7 +103,7 @@ $sn_ticket = str_p('sn_ticket');
         align-items: center;
         gap: 4px;
     }
-    
+
     .status-pill::before {
         content: '';
         width: 5px;
@@ -109,12 +112,35 @@ $sn_ticket = str_p('sn_ticket');
         background-color: currentColor;
     }
 
-    .badge-soft-primary { background: rgba(13, 110, 253, 0.1); color: #0d6efd; }
-    .badge-soft-success { background: rgba(25, 135, 84, 0.1); color: #198754; }
-    .badge-soft-warning { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
-    .badge-soft-danger { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
-    .badge-soft-info { background: rgba(13, 202, 240, 0.1); color: #0dcaf0; }
-    .badge-soft-secondary { background: rgba(108, 117, 125, 0.1); color: #6c757d; }
+    .badge-soft-primary {
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+
+    .badge-soft-success {
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+
+    .badge-soft-warning {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+
+    .badge-soft-danger {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+
+    .badge-soft-info {
+        background: rgba(13, 202, 240, 0.1);
+        color: #0dcaf0;
+    }
+
+    .badge-soft-secondary {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
 
     .user-avatar-sm {
         width: 24px;
@@ -141,7 +167,7 @@ $sn_ticket = str_p('sn_ticket');
         box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
         transition: all 0.2s;
     }
-    
+
     .btn-primary-modern:hover {
         transform: translateY(-1px);
         box-shadow: 0 6px 16px rgba(13, 110, 253, 0.3);
@@ -164,7 +190,7 @@ $sn_ticket = str_p('sn_ticket');
         background: var(--bs-tertiary-bg);
         border-color: var(--bs-gray-400);
     }
-    
+
     .ticket-title-link {
         color: var(--bs-body-color);
         text-decoration: none;
@@ -172,9 +198,108 @@ $sn_ticket = str_p('sn_ticket');
         font-size: 0.8rem;
         transition: color 0.2s;
     }
-    
+
     .ticket-title-link:hover {
         color: var(--bs-primary);
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        min-height: calc(1.5em + 0.75rem + 2px);
+        background-color: var(--color-bg-surface, #353c48);
+        border: var(--bs-border-width) solid var(--color-border-primary, #50596a);
+        border-radius: 10px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: var(--color-text-primary, #95a0b1);
+        line-height: calc(1.5em + 0.75rem);
+        padding-right: 0.75rem;
+        padding-left: 2rem;
+        font-size: 0.9rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: var(--color-text-secondary, #6a7384);
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + 0.75rem);
+        top: 1px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: var(--color-text-primary, #95a0b1) transparent transparent transparent;
+    }
+
+    .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+        border-color: transparent transparent var(--color-text-primary, #95a0b1) transparent;
+    }
+
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: var(--color-primary, #3c92b1);
+        box-shadow: 0 0 0 var(--bs-focus-ring-width, 0.25rem) var(--color-badge-primary-bg, rgba(60, 146, 177, 0.25));
+    }
+
+    .select2-dropdown {
+        z-index: 1056;
+        background-color: var(--color-bg-surface, #353c48);
+        border: var(--bs-border-width) solid var(--color-border-primary, #50596a);
+        border-radius: var(--bs-border-radius, 0.375rem);
+        box-shadow: 0 4px 12px var(--color-shadow-lg, rgba(0, 0, 0, 0.3));
+    }
+
+    .select2-container--default .select2-search--dropdown {
+        padding: 0.5rem;
+        background-color: var(--color-bg-surface, #353c48);
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        background-color: var(--color-bg-tertiary, #2c323d);
+        border: var(--bs-border-width) solid var(--color-border-primary, #50596a);
+        border-radius: var(--bs-border-radius-sm, 0.25rem);
+        color: var(--color-text-primary, #95a0b1);
+        padding: 0.375rem 0.75rem;
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+        border-color: var(--color-primary, #3c92b1);
+        box-shadow: 0 0 0 var(--bs-focus-ring-width, 0.25rem) var(--color-badge-primary-bg, rgba(60, 146, 177, 0.25));
+        outline: 0;
+    }
+
+    .select2-container--default .select2-results__option {
+        color: var(--color-text-primary, #95a0b1);
+        background-color: var(--color-bg-surface, #353c48);
+        padding: 0.5rem 0.75rem;
+    }
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: var(--color-bg-secondary, #353c48);
+        color: var(--color-text-primary, #95a0b1);
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: rgba(var(--color-primary-rgb, 60, 146, 177), 0.22);
+        color: var(--color-text-primary, #95a0b1);
+    }
+
+    .select2-container--default .select2-results__option[aria-disabled=true] {
+        color: var(--color-text-disabled, #495160);
+    }
+
+    .select2-container--default .select2-results>.select2-results__options {
+        max-height: 240px;
+        background-color: var(--color-bg-surface, #353c48);
+    }
+
+    .select2-container--default.select2-container--disabled .select2-selection--single {
+        background-color: var(--color-bg-hover, rgba(255, 255, 255, 0.05));
+        opacity: 0.75;
     }
 </style>
 
@@ -194,13 +319,27 @@ $sn_ticket = str_p('sn_ticket');
                             <div class="mb-3">
                                 <label class="form-label" for="faal">وضعیت</label>
                                 <select class="form-select" name="faal" id="faal">
-                                    <option value="" <?php if ($faal === "" || $faal === "0" || $faal === "all") { echo "selected"; } ?>>همه</option>
-                                    <option value="a" <?php if ($faal === "a") { echo "selected"; } ?>>ثبت اولیه</option>
-                                    <option value="m" <?php if ($faal === "m") { echo "selected"; } ?>>درحال بررسی</option>
-                                    <option value="k" <?php if ($faal === "k") { echo "selected"; } ?>>انجام شده</option>
-                                    <option value="b" <?php if ($faal === "b") { echo "selected"; } ?>>بسته شده</option>
-                                    <option value="c" <?php if ($faal === "c") { echo "selected"; } ?>>کنسل شده</option>
-                                    <option value="t" <?php if ($faal === "t") { echo "selected"; } ?>>بررسی مجدد</option>
+                                    <option value="" <?php if ($faal === "" || $faal === "0" || $faal === "all") {
+                                                            echo "selected";
+                                                        } ?>>همه</option>
+                                    <option value="a" <?php if ($faal === "a") {
+                                                            echo "selected";
+                                                        } ?>>ثبت اولیه</option>
+                                    <option value="m" <?php if ($faal === "m") {
+                                                            echo "selected";
+                                                        } ?>>درحال بررسی</option>
+                                    <option value="k" <?php if ($faal === "k") {
+                                                            echo "selected";
+                                                        } ?>>انجام شده</option>
+                                    <option value="b" <?php if ($faal === "b") {
+                                                            echo "selected";
+                                                        } ?>>بسته شده</option>
+                                    <option value="c" <?php if ($faal === "c") {
+                                                            echo "selected";
+                                                        } ?>>کنسل شده</option>
+                                    <option value="t" <?php if ($faal === "t") {
+                                                            echo "selected";
+                                                        } ?>>بررسی مجدد</option>
                                 </select>
                             </div>
                         </div>
@@ -214,11 +353,16 @@ $sn_ticket = str_p('sn_ticket');
                                     if ($Result_dep = mysqli_query($Link, $Query_dep)) {
                                         while ($q_dep = mysqli_fetch_array($Result_dep)) {
                                     ?>
-                                    <option value="<?php echo $q_dep['id']; ?>" <?php if ($daste === $q_dep['id']) { echo "selected"; } ?>>
-                                        <?php echo $q_dep['name']; ?> - [<?php echo $q_dep['id']; ?>]
-                                    </option>
-                                    <?php } } ?>
-                                    <option value="" <?php if ($daste === "" || $daste === "0" || $daste === "all") { echo "selected"; } ?>>همه موارد</option>
+                                            <option value="<?php echo $q_dep['id']; ?>" <?php if ($daste === $q_dep['id']) {
+                                                                                            echo "selected";
+                                                                                        } ?>>
+                                                <?php echo $q_dep['name']; ?> - [<?php echo $q_dep['id']; ?>]
+                                            </option>
+                                    <?php }
+                                    } ?>
+                                    <option value="" <?php if ($daste === "" || $daste === "0" || $daste === "all") {
+                                                            echo "selected";
+                                                        } ?>>همه موارد</option>
                                 </select>
                             </div>
                         </div>
@@ -232,11 +376,16 @@ $sn_ticket = str_p('sn_ticket');
                                     if ($Result_sherkat = mysqli_query($Link, $Query_sherkat)) {
                                         while ($q_sherkat = mysqli_fetch_array($Result_sherkat)) {
                                     ?>
-                                    <option value="<?php echo $q_sherkat['code']; ?>" <?php if ($sherkat === $q_sherkat['code']) { echo "selected"; } ?>>
-                                        <?php echo $q_sherkat['name']; ?>
-                                    </option>
-                                    <?php } } ?>
-                                    <option value="" <?php if ($sherkat === "" || $sherkat === "0" || $sherkat === "all") { echo "selected"; } ?>>همه موارد</option>
+                                            <option value="<?php echo $q_sherkat['code']; ?>" <?php if ($sherkat === $q_sherkat['code']) {
+                                                                                                    echo "selected";
+                                                                                                } ?>>
+                                                <?php echo $q_sherkat['name']; ?>
+                                            </option>
+                                    <?php }
+                                    } ?>
+                                    <option value="" <?php if ($sherkat === "" || $sherkat === "0" || $sherkat === "all") {
+                                                            echo "selected";
+                                                        } ?>>همه موارد</option>
                                 </select>
                             </div>
                         </div>
@@ -301,151 +450,187 @@ $sn_ticket = str_p('sn_ticket');
                             </tr>
                         </thead>
                         <tbody>
-                        <?php
-                        $shomare = 0;
-                        
-                        // Query Building
-                        $shart = " code_p_karbar = '$code_p_run' AND i_ticket > 0 ";
-                        
-                        if ($faal != "0" AND $faal != "all" AND $faal != "") {
-                            $shart = $shart . "AND vaziat = '$faal' ";
-                        }
-                        if ($daste != "0" AND $daste != "all" AND $daste != "") {
-                            $shart = $shart . "AND daste = '$daste' ";
-                        }
-                        if ($sherkat != "0" AND $sherkat != "all" AND $sherkat != "") {
-                            $shart = $shart . "AND code_sherkat = '$sherkat' ";
-                        }
-                        if ($tarikh_1 != "0" AND $tarikh_1 != "all" AND $tarikh_1 != "") {
-                            $shart = $shart . "AND tarikh_sabt > '$tarikh_1' ";
-                        }
-                        if ($tarikh_2 != "0" AND $tarikh_2 != "all" AND $tarikh_2 != "") {
-                            $shart = $shart . "AND tarikh_sabt < '$tarikh_2' ";
-                        }
-                        if ($sn_ticket != "0" AND $sn_ticket != "all" AND $sn_ticket != "") {
-                            $sn_ticket_escaped = mysqli_real_escape_string($Link, $sn_ticket);
-                            $shart = $shart . "AND code like '%$sn_ticket_escaped%' ";
-                        }
-                        
-                        $Query_list = "SELECT * from ticket where ($shart) ORDER BY i_ticket DESC LIMIT 2000";
+                            <?php
+                            $shomare = 0;
 
-                        if ($Result_list = mysqli_query($Link, $Query_list)) {
-                            if (mysqli_num_rows($Result_list) > 0) {
-                                while ($q_list = mysqli_fetch_array($Result_list)) {
-                                    $shomare++;
-                                    $cod_tiket_in = $q_list['code'];
-                                    
-                                    // Count unread responses for ticket creator
-                                    // Ticket creators see ALL unread responses (not filtered by code_karbar2)
-                                    $pasokh = 0;
-                                    $monhh = "مسئول پاسخگویی به";
-                                    $Query_pasokh = "SELECT * FROM pasokh where (code_ticket = '$cod_tiket_in' AND matn NOT like '%$monhh%' AND oksee = 'n')";
-                                    if ($Result_pasokh = mysqli_query($Link, $Query_pasokh)) {
-                                        $pasokh = mysqli_num_rows($Result_pasokh);
-                                    }
-                        ?>
-                            <tr>
-                                <td><span class="fw-bold text-muted"><?php echo $shomare; ?></span></td>
-                                <td>
-                                    <?php if ($q_list['olaviat'] == "1") { ?>
-                                        <span class="status-pill badge-soft-danger">ضروری</span>
-                                    <?php } elseif ($q_list['olaviat'] == "2") { ?>
-                                        <span class="status-pill badge-soft-warning">متوسط</span>
-                                    <?php } elseif ($q_list['olaviat'] == "3") { ?>
-                                        <span class="status-pill badge-soft-info">معمولی</span>
-                                    <?php } elseif ($q_list['olaviat'] == "4") { ?>
-                                        <span class="status-pill badge-soft-secondary">پایین</span>
-                                    <?php } ?>
-                                </td>
-                                <td>
-                                    <span class="fw-bold font-monospace"><?php echo $q_list['code']; ?></span>
-                                </td>
-                                <td>
-                                    <a href="?page=info_ticket&code=<?php echo $q_list['code']; ?>" class="ticket-title-link">
-                                        <?php echo $q_list['titr']; ?>
-                                    </a>
-                                    <div class="d-flex align-items-center gap-2 mt-1">
-                                        <small class="text-muted"><i class="bi bi-building me-1"></i><?php echo $q_list['name_sherkat']; ?></small>
-                                        <?php if ($pasokh > 0) { ?>
-                                            <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">
-                                                <?php echo $pasokh; ?> پاسخ جدید
-                                            </span>
-                                        <?php } ?>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border">
-                                        <?php echo $q_list['name_daste']; ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="user-avatar-sm">
-                                            <?php echo mb_substr($q_list['name_karbar'], 0, 1, 'UTF-8'); ?>
-                                        </div>
-                                        <span><?php echo $q_list['name_karbar']; ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <?php
-                                    $status_class = 'badge-soft-secondary';
-                                    $status_text = 'نامشخص';
-                                    
-                                    switch($q_list['vaziat']) {
-                                        case 'a': $status_class = 'badge-soft-danger'; $status_text = 'ثبت اولیه'; break;
-                                        case 'm': $status_class = 'badge-soft-info'; $status_text = 'درحال بررسی'; break;
-                                        case 'b': $status_class = 'badge-soft-success'; $status_text = 'بسته شده'; break;
-                                        case 'k': $status_class = 'badge-soft-success'; $status_text = 'انجام شد'; break;
-                                        case 't': $status_class = 'badge-soft-warning'; $status_text = 'بررسی مجدد'; break;
-                                        case 'c': $status_class = 'badge-soft-secondary'; $status_text = 'کنسل شده'; break;
-                                    }
-                                    ?>
-                                    <span class="status-pill <?php echo $status_class; ?>">
-                                        <?php echo $status_text; ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php if ($q_list['vaziat'] == "a") { ?>
-                                        <span class="text-muted">منتظر ارجاع</span>
-                                    <?php } else { ?>
-                                        <?php if ($q_list['name_karbar_anjam']) { ?>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="user-avatar-sm" style="background: linear-gradient(135deg, var(--bs-orange), var(--bs-warning));">
-                                                    <?php echo mb_substr($q_list['name_karbar_anjam'], 0, 1, 'UTF-8'); ?>
+                            // Query Building
+                            $code_p_run_escaped = mysqli_real_escape_string($Link, $code_p_run);
+                            $shart = " ticket.code_p_karbar = '$code_p_run_escaped' AND ticket.i_ticket > 0 ";
+
+                            if ($faal != "0" and $faal != "all" and $faal != "") {
+                                $shart = $shart . "AND ticket.vaziat = '$faal' ";
+                            }
+                            if ($daste != "0" and $daste != "all" and $daste != "") {
+                                $shart = $shart . "AND ticket.daste = '$daste' ";
+                            }
+                            if ($sherkat != "0" and $sherkat != "all" and $sherkat != "") {
+                                $shart = $shart . "AND ticket.code_sherkat = '$sherkat' ";
+                            }
+                            if ($tarikh_1 != "0" and $tarikh_1 != "all" and $tarikh_1 != "") {
+                                $shart = $shart . "AND ticket.tarikh_sabt > '$tarikh_1' ";
+                            }
+                            if ($tarikh_2 != "0" and $tarikh_2 != "all" and $tarikh_2 != "") {
+                                $shart = $shart . "AND ticket.tarikh_sabt < '$tarikh_2' ";
+                            }
+                            if ($sn_ticket != "0" and $sn_ticket != "all" and $sn_ticket != "") {
+                                $sn_ticket_escaped = mysqli_real_escape_string($Link, $sn_ticket);
+                                $shart = $shart . "AND ticket.code like '%$sn_ticket_escaped%' ";
+                            }
+
+                            $monhh_escaped = mysqli_real_escape_string($Link, "مسئول پاسخگویی به");
+
+                            // Single query with unread counts via JOIN (same approach as support list)
+                            // Users only see unread responses from support, not their own messages
+                            $Query_list = "SELECT ticket.*,
+                                     COALESCE(pasokh_counts_creator.new_answers_count, 0) as new_answers_creator,
+                                     COALESCE(pasokh_counts_creator.new_answers_count, 0) as has_new_responses,
+                                     COALESCE(latest_response.last_response_time, CONCAT(ticket.tarikh_sabt, ' ', ticket.saat_sabt)) as sort_time
+                                     FROM ticket
+                                     LEFT JOIN (
+                                         SELECT code_ticket, COUNT(*) as new_answers_count
+                                         FROM pasokh
+                                         WHERE oksee = 'n'
+                                         AND matn NOT LIKE '%$monhh_escaped%'
+                                         AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_p_run_escaped')
+                                         GROUP BY code_ticket
+                                     ) pasokh_counts_creator ON ticket.code = pasokh_counts_creator.code_ticket
+                                     LEFT JOIN (
+                                         SELECT code_ticket, MAX(CONCAT(tarikh_sabt, ' ', saat_sabt)) as last_response_time
+                                         FROM pasokh
+                                         GROUP BY code_ticket
+                                     ) latest_response ON ticket.code = latest_response.code_ticket
+                                     WHERE ($shart)
+                                     ORDER BY has_new_responses DESC, sort_time DESC
+                                     LIMIT 2000";
+
+                            if ($Result_list = mysqli_query($Link, $Query_list)) {
+                                if (mysqli_num_rows($Result_list) > 0) {
+                                    while ($q_list = mysqli_fetch_array($Result_list)) {
+                                        $shomare++;
+
+                                        // Unread responses from support (pre-calculated in JOIN query)
+                                        $pasokh = (int) $q_list['new_answers_creator'];
+                            ?>
+                                        <tr>
+                                            <td><span class="fw-bold text-muted"><?php echo $shomare; ?></span></td>
+                                            <td>
+                                                <?php if ($q_list['olaviat'] == "1") { ?>
+                                                    <span class="status-pill badge-soft-danger">ضروری</span>
+                                                <?php } elseif ($q_list['olaviat'] == "2") { ?>
+                                                    <span class="status-pill badge-soft-warning">متوسط</span>
+                                                <?php } elseif ($q_list['olaviat'] == "3") { ?>
+                                                    <span class="status-pill badge-soft-info">معمولی</span>
+                                                <?php } elseif ($q_list['olaviat'] == "4") { ?>
+                                                    <span class="status-pill badge-soft-secondary">پایین</span>
+                                                <?php } ?>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold font-monospace"><?php echo $q_list['code']; ?></span>
+                                            </td>
+                                            <td>
+                                                <a href="?page=info_ticket&code=<?php echo $q_list['code']; ?>" class="ticket-title-link">
+                                                    <?php echo $q_list['titr']; ?>
+                                                </a>
+                                                <div class="d-flex align-items-center gap-2 mt-1">
+                                                    <small class="text-muted"><i class="bi bi-building me-1"></i><?php echo $q_list['name_sherkat']; ?></small>
+                                                    <?php if ($pasokh > 0) { ?>
+                                                        <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">
+                                                            <?php echo $pasokh; ?> پاسخ جدید
+                                                        </span>
+                                                    <?php } ?>
                                                 </div>
-                                                <small><?php echo $q_list['name_karbar_anjam']; ?></small>
-                                            </div>
-                                        <?php } else { ?>
-                                            <span class="text-muted">-</span>
-                                        <?php } ?>
-                                    <?php } ?>
-                                </td>
-                                <td>
-                                    <div class="d-flex flex-column">
-                                        <span><?php echo $q_list['tarikh_sabt']; ?></span>
-                                        <small class="text-muted"><?php echo $q_list['saat_sabt']; ?></small>
-                                    </div>
-                                </td>
-                                <td>
-                                    <a href="?page=info_ticket&code=<?php echo $q_list['code']; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.75rem; font-family: 'IranYekanNum', sans-serif;">
-                                        مشاهده
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php 
-                                } // End while
-                            } else {
-                        ?>
-                            <tr>
-                                <td colspan="10" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
-                                    <p class="mb-0">هیچ تیکتی با شرایط مورد نظر یافت نشد.</p>
-                                </td>
-                            </tr>
-                        <?php
-                            } // End if rows > 0
-                        } // End query
-                        ?>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border">
+                                                    <?php echo $q_list['name_daste']; ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="user-avatar-sm">
+                                                        <?php echo mb_substr($q_list['name_karbar'], 0, 1, 'UTF-8'); ?>
+                                                    </div>
+                                                    <span><?php echo $q_list['name_karbar']; ?></span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <?php
+                                                $status_class = 'badge-soft-secondary';
+                                                $status_text = 'نامشخص';
+
+                                                switch ($q_list['vaziat']) {
+                                                    case 'a':
+                                                        $status_class = 'badge-soft-danger';
+                                                        $status_text = 'ثبت اولیه';
+                                                        break;
+                                                    case 'm':
+                                                        $status_class = 'badge-soft-info';
+                                                        $status_text = 'درحال بررسی';
+                                                        break;
+                                                    case 'b':
+                                                        $status_class = 'badge-soft-success';
+                                                        $status_text = 'بسته شده';
+                                                        break;
+                                                    case 'k':
+                                                        $status_class = 'badge-soft-success';
+                                                        $status_text = 'انجام شد';
+                                                        break;
+                                                    case 't':
+                                                        $status_class = 'badge-soft-warning';
+                                                        $status_text = 'بررسی مجدد';
+                                                        break;
+                                                    case 'c':
+                                                        $status_class = 'badge-soft-secondary';
+                                                        $status_text = 'کنسل شده';
+                                                        break;
+                                                }
+                                                ?>
+                                                <span class="status-pill <?php echo $status_class; ?>">
+                                                    <?php echo $status_text; ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?php if ($q_list['vaziat'] == "a") { ?>
+                                                    <span class="text-muted">منتظر ارجاع</span>
+                                                <?php } else { ?>
+                                                    <?php if ($q_list['name_karbar_anjam']) { ?>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <div class="user-avatar-sm" style="background: linear-gradient(135deg, var(--bs-orange), var(--bs-warning));">
+                                                                <?php echo mb_substr($q_list['name_karbar_anjam'], 0, 1, 'UTF-8'); ?>
+                                                            </div>
+                                                            <small><?php echo $q_list['name_karbar_anjam']; ?></small>
+                                                        </div>
+                                                    <?php } else { ?>
+                                                        <span class="text-muted">-</span>
+                                                    <?php } ?>
+                                                <?php } ?>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span><?php echo $q_list['tarikh_sabt']; ?></span>
+                                                    <small class="text-muted"><?php echo $q_list['saat_sabt']; ?></small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="?page=info_ticket&code=<?php echo $q_list['code']; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.75rem; font-family: 'IranYekanNum', sans-serif;">
+                                                    مشاهده
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php
+                                    } // End while
+                                } else {
+                                    ?>
+                                    <tr>
+                                        <td colspan="10" class="text-center py-5 text-muted">
+                                            <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                            <p class="mb-0">هیچ تیکتی با شرایط مورد نظر یافت نشد.</p>
+                                        </td>
+                                    </tr>
+                            <?php
+                                } // End if rows > 0
+                            } // End query
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -453,3 +638,59 @@ $sn_ticket = str_p('sn_ticket');
         </div>
     </div>
 </div>
+
+<script>
+    (function() {
+        var SEARCHABLE_SELECT_IDS = ['faal', 'daste', 'sherkat'];
+
+        function initSearchableDropdown(selectEl) {
+            if (!selectEl || typeof jQuery === 'undefined' || !jQuery.fn.select2) {
+                return;
+            }
+
+            var $el = jQuery(selectEl);
+            if ($el.hasClass('select2-hidden-accessible')) {
+                $el.select2('destroy');
+            }
+
+            $el.select2({
+                dir: 'rtl',
+                width: '100%',
+                minimumResultsForSearch: 0,
+                language: {
+                    noResults: function() {
+                        return 'نتیجه‌ای یافت نشد';
+                    },
+                    searching: function() {
+                        return 'در حال جستجو...';
+                    }
+                }
+            });
+        }
+
+        function initAllSearchableDropdowns() {
+            SEARCHABLE_SELECT_IDS.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) {
+                    initSearchableDropdown(el);
+                }
+            });
+        }
+
+        function loadSelect2Assets(callback) {
+            if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+                callback();
+                return;
+            }
+
+            var script = document.createElement('script');
+            script.src = 'assets/vendor/select2/select2.min.js';
+            script.onload = callback;
+            document.head.appendChild(script);
+        }
+
+        window.addEventListener('load', function() {
+            loadSelect2Assets(initAllSearchableDropdowns);
+        });
+    })();
+</script>

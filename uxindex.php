@@ -32,7 +32,8 @@ if (!isset($_SESSION['code_p'])) {
 
 if($page=="s_new_pasokh")include('page/ux/s_new_pasokh.php'); // ok
 
-if($page=="end_ticket")include('page/ux/end_ticket.php'); 
+if($page=="end_ticket")include('page/ux/end_ticket.php');
+if($page=="s_reopen_ticket")include('page/ux/s_reopen_ticket.php'); 
 if($page=="s_new_ticket")include('page/ux/s_new_ticket.php'); 
 if($page=="erja_ticket")include('page/ux/erja_ticket.php');
 if($page=="s_new_karkerd")include('page/ux/s_new_karkerd.php');
@@ -50,6 +51,12 @@ if($page=="update_priority")include('page/ux/update_priority.php');
 if($page=="change_category")include('page/ux/change_category.php');
 if($page=="s_update_avatar")include('page/ux/s_update_avatar.php');
 if($page=="s_change_password")include('page/ux/s_change_password.php');
+if($page=="assign_default_users")include('page/ux/assign_default_users.php');
+if($page=="send_ticket_to_bsp")include('page/ux/send_ticket_to_bsp.php');
+
+if($page=="s_save_tag")include('page/ux/s_save_tag.php');
+if($page=="s_delete_tag")include('page/ux/s_delete_tag.php');
+if($page=="toggle_tag_assignment")include('page/ux/toggle_tag_assignment.php');
 
 if($page=="exit")include('page/ux/exit.php');
 

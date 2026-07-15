@@ -57,7 +57,7 @@ if($Result_dep=mysqli_query($Link,$Query_dep)){
 while($q_dep=mysqli_fetch_array($Result_dep)){
 
 ?>
-                            <option value="<?php echo $q_dep['id']; ?>"><?php echo $q_dep['name']; ?> - [<?php echo $q_dep['id']; ?>]</option>
+                            <option value="<?php echo $q_dep['id']; ?>"><?php echo $q_dep['name']; ?></option>
 <?php }} ?>                            
                           </select>
                         </div>

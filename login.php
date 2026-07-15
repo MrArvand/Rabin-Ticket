@@ -9,7 +9,6 @@
   <!-- Meta -->
   <meta name="description" content="سامانه تیکت پشتیبانی فراهم - نسخه ویژه کاربران پشتیبان" />
   <meta name="theme-color" content="var(--color-login-primary, #2563eb)">
-  <meta name="author" content="okteam" />
   
   <!-- Critical: Apply theme immediately before render to prevent FOUC -->
   <script>

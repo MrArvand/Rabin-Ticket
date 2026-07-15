@@ -27,7 +27,7 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
     $dastrasi_all_proje = "y";
 
     //----------------------------------------------------------
-    $special_view_codes = ["24277", "25662", "20612", "23056", "22695", "20072", "1100105", "1100056", "1064046037"];
+    $special_view_codes = ["24277", "25662", "20612", "23056", "22695", "20072", "1100105", "1100056", "1064046037", "1100005", "23882"];
 
 ?>
 
@@ -446,9 +446,9 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
                         <div class="header-actions">
 
 
-                            <a class="dropdown-toggle d-flex p-3 position-relative" href="?page=start_ticket" role="button">
-                                <span class="bi bi-plus fs-4"></span>
-                            </a>
+                            <!--<a class="dropdown-toggle d-flex p-3 position-relative" href="?page=start_ticket" role="button">-->
+                            <!--    <span class="bi bi-plus fs-4"></span>-->
+                            <!--</a>-->
 
                             <!-- Fullscreen Toggle Button -->
                             <span class="dropdown">
@@ -881,12 +881,6 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
 
                     </div>
                     <!-- App body ends -->
-
-                    <!-- App footer start -->
-                    <div class="app-footer">
-                        <span>طراحی و اجرا : www.okteam.ir</span>
-                    </div>
-                    <!-- App footer end -->
 
                 </div>
                 <!-- App container ends -->

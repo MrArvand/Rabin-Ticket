@@ -1,4 +1,5 @@
 <?php
+require_once(__DIR__ . '/../../jaryanyar/api_functions.php');
 
 $karbar_darkhast=str_p('karbar_darkhast');
 $karbar_p_darkhast=str_p('karbar_p_darkhast');
@@ -37,8 +38,40 @@ $log_txt="ایجاد . ثبت اولیه تیکت از طریق پنل پشتی�
 
 $titr="[*]".$titr;
 
+// Check if department has a default user assigned and get department name
+$default_user_code = '';
+$default_user_name = '';
+$department_name = '';
+$default_user_tel = '';
+if (!empty($daste)) {
+    $daste_escaped = mysqli_real_escape_string($Link, $daste);
+    $query_default = "SELECT name, default_user_code, default_user_name FROM departman WHERE id = '$daste_escaped' AND vaziat = 'y' LIMIT 1";
+    if ($result_default = mysqli_query($Link, $query_default)) {
+        if ($row_default = mysqli_fetch_array($result_default)) {
+            $department_name = $row_default['name'];
+            if (!empty($row_default['default_user_code']) && !empty($row_default['default_user_name'])) {
+                $default_user_code = mysqli_real_escape_string($Link, $row_default['default_user_code']);
+                $default_user_name = mysqli_real_escape_string($Link, $row_default['default_user_name']);
+                
+                // Get default user's phone number
+                $default_user_code_escaped = mysqli_real_escape_string($Link, $default_user_code);
+                $query_user_tel = "SELECT tel FROM karbar WHERE code_p = '$default_user_code_escaped' LIMIT 1";
+                if ($result_user_tel = mysqli_query($Link, $query_user_tel)) {
+                    if ($row_user_tel = mysqli_fetch_array($result_user_tel)) {
+                        $default_user_tel = $row_user_tel['tel'];
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Auto-assign to default user if exists, otherwise leave empty (status remains 'a')
+$code_p_karbar_anjam = $default_user_code;
+$name_karbar_anjam = $default_user_name;
+
 $Qery="INSERT INTO `ticket` (`titr`, `olaviat`, `matn`, `code`, `code_p_karbar`, `name_karbar`,`tel_karbar`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `daste`, `name_daste`, `name_sherkat`, `code_sherkat`, `code_p_karbar_anjam`, `name_karbar_anjam`, `tarikh_anjam`, `saat_anjam`, `log_txt`, `i_ticket`) 
-VALUES ('$titr', '$olaviat', '$matn', '$code_ticket', '$karbar_p_darkhast', '$karbar_darkhast', '$tel_karbar', '$tarikh', '$saat', 'a', '$daste', '$daste', '$name_sherkat', '$sherkat', '', '', '', '', '$log_txt', NULL);";
+VALUES ('$titr', '$olaviat', '$matn', '$code_ticket', '$karbar_p_darkhast', '$karbar_darkhast', '$tel_karbar', '$tarikh', '$saat', 'a', '$daste', '$daste', '$name_sherkat', '$sherkat', '$code_p_karbar_anjam', '$name_karbar_anjam', '', '', '$log_txt', NULL);";
 
 $code_pasokh="G-".time()."-".rand(11,99);
 // این کوئری بررسی شود
@@ -89,13 +122,46 @@ VALUES ('$code_ticket', '$code_pasokh', '$code_file', '$titr', '$kind_file', '$h
 
 
 if ($Link->multi_query($Qery ) === TRUE) {	
-header("location: ?page=list_ticket&p=y");  
+    
+    // Include SMS helper function
+    require_once(__DIR__ . '/../../inf/s_sms.php');
+    
+    // Send pattern SMS to default user if assigned
+    if (!empty($default_user_code) && !empty($default_user_tel)) {
+        $titr_trimmed = trim_text($titr, 80);
+        $display_department_name = !empty($department_name) ? $department_name : $daste;
+
+        $sms_result = send_sms_pattern($default_user_tel, [
+            'department' => $display_department_name,
+            'ticket_number' => $code_ticket,
+            'ticket_title' => $titr_trimmed,
+            'sender_name' => $karbar_darkhast
+        ], [
+            'pattern_code' => 'UlTaEoqWQ0',
+            'line_number' => '3000505',
+            'number_format' => 'english'
+        ]);
+
+        if (!$sms_result['success']) {
+            error_log('IranPayamak SMS failed for ticket ' . $code_ticket . ': ' . $sms_result['message']);
+        }
+    } elseif (!empty($default_user_code)) {
+        error_log('IranPayamak SMS skipped for ticket ' . $code_ticket . ': default user phone is empty');
+    }
+    
+    $apiResult = updateTicket($code_ticket);
+    if ($apiResult && !$apiResult['success']) {
+      error_log('Jaryanyar updateTicket failed for ' . $code_ticket . ': ' . ($apiResult['error'] ?? json_encode($apiResult['response'])));
+    }
+    
+header("location: ?page=list_ticket&p=y");
+exit;
 }else{
-header("location: ?page=start_ticket&p=n");  
+header("location: ?page=start_ticket&p=n");
+exit;
  }
 }else{
-header("location: ?page=start_ticket&p=n");     
+header("location: ?page=start_ticket&p=n");
+exit;
 }
  ?>
-
-

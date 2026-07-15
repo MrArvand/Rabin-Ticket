@@ -17,9 +17,9 @@ class Database
     {
         // Use existing database configuration
         $this->host = "localhost";
-        $this->user = "requestr_requestr";
-        $this->password = "Y1AFEeU}v6";
-        $this->database = "requestr_rahbarian";
+        $this->user = "rahbaria_software_team";
+        $this->password = "C7L}n}U n<Y}^";
+        $this->database = "rahbaria_requestr_rahbarian";
     }
 
     public function connect()

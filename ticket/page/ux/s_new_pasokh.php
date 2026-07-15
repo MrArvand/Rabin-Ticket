@@ -1,222 +1,226 @@
 <?php
+require_once(__DIR__ . '/../../../jaryanyar/api_functions.php');
 
-$code_ticket=str_p('code_ticket');
-$matn_pasokh=str_p('matn_pasokh');
+$code_ticket = str_p('code_ticket');
+$matn_pasokh = str_p('matn_pasokh');
+$kind_file = "";
+$ok_upload = "n";
 
+$email_kk = "";
+$name_karbar5 = "";
 
+if ($code_ticket != "" || $matn_pasokh != "" || $code_p_run != "") {
 
+  $Query_ticket = "SELECT*from ticket where ( code = '$code_ticket' )ORDER BY i_ticket DESC LIMIT 200";
+  if ($Result_ticket = mysqli_query($Link, $Query_ticket)) {
+    while ($q_ticket = mysqli_fetch_array($Result_ticket)) {
 
-$email_kk="";
-$name_karbar5="";
-
-if(  $code_ticket !="" || $matn_pasokh!="" || $code_p_run !=""  ){
-
-								$Query_ticket="SELECT*from ticket where ( code = '$code_ticket' )ORDER BY i_ticket DESC LIMIT 200";
-   if($Result_ticket=mysqli_query($Link,$Query_ticket)){
- while($q_ticket=mysqli_fetch_array($Result_ticket)){
-
-$code_karbar2=$q_ticket['code_p_karbar'];
-$name_karbar2=$q_ticket['name_karbar'];
-$titr=$q_ticket['titr'];
-$code_karbar_anjam=$q_ticket['code_p_karbar_anjam'];
-$vaziat_tt=$q_ticket['vaziat'];
-
- }}
- 
- 
- 
- 								$Query_karbar ="SELECT*from karbar where ( code_p = '$code_karbar_anjam' )ORDER BY i_karbar DESC LIMIT 200";
-   if($Result_karbar=mysqli_query($Link,$Query_karbar )){
- while($q_karbar =mysqli_fetch_array($Result_karbar )){
-
-$email_kk=$q_karbar['email'];
-$tel_task_send=$q_karbar['tel'];
-$name_karbar5=$q_karbar['name'];
-
- }}
- 
- 
- 
- 
- 
- 
- 
+      $code_karbar2 = $q_ticket['code_p_karbar'];
+      $name_karbar2 = $q_ticket['name_karbar'];
+      $titr = $q_ticket['titr'];
+      $department_name = !empty($q_ticket['name_daste']) ? $q_ticket['name_daste'] : $q_ticket['daste'];
+      $code_karbar_anjam = $q_ticket['code_p_karbar_anjam'];
+      $vaziat_tt = $q_ticket['vaziat'];
+      $daste_ticket = $q_ticket['daste'];
+    }
+  }
 
 
 
-//---------------------------------------------------------
+  $Query_karbar = "SELECT*from karbar where ( code_p = '$code_karbar_anjam' )ORDER BY i_karbar DESC LIMIT 200";
+  if ($Result_karbar = mysqli_query($Link, $Query_karbar)) {
+    while ($q_karbar = mysqli_fetch_array($Result_karbar)) {
+
+      $email_kk = $q_karbar['email'];
+      $tel_task_send = $q_karbar['tel'];
+      $name_karbar5 = $q_karbar['name'];
+    }
+  }
 
 
-$code_pasokh="G-".time()."-".rand(11,99);
+  //---------------------------------------------------------
 
-// Escape user input for SQL
-$matn_pasokh_escaped = mysqli_real_escape_string($Link, $matn_pasokh);
-$code_ticket_escaped = mysqli_real_escape_string($Link, $code_ticket);
+  // Reject new replies when ticket is closed (بسته شده) or cancelled (کنسل شده)
+  if ($vaziat_tt === 'b' || $vaziat_tt === 'c') {
+    header('Location: ?page=info_ticket&code=' . urlencode($code_ticket) . '&p=n');
+    exit;
+  }
 
-$Qery="INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
+  $code_pasokh = "G-" . time() . "-" . rand(11, 99);
+
+  // Escape user input for SQL
+  $matn_pasokh_escaped = mysqli_real_escape_string($Link, $matn_pasokh);
+  $code_ticket_escaped = mysqli_real_escape_string($Link, $code_ticket);
+
+  $Qery = "INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
 VALUES ('$code_pasokh', '$code_ticket_escaped', '$code_p_run', '$name_karbar_run', '', '', '$matn_pasokh_escaped', '$tarikh', '$saat', 'm', 'n', '', '', NULL);";
 
-if($vaziat_tt !="a" ){
-    
-$Qery.="UPDATE `ticket` SET
+  if ($vaziat_tt != "a") {
+
+    $Qery .= "UPDATE `ticket` SET
  `vaziat` = 'm' 
- WHERE `code` ='$code_ticket_escaped'; ";	
- 
-}
-
-
-//--------------------------------------------------------------------------------------sabt_file
-
-
-$namefilep=strtolower($_FILES["file_peyvast"]["name"]);
-if($namefilep !="" ){
-
-
-  $namefilep=strtolower($_FILES["file_peyvast"]["name"]);
-  
-  if(strpos($namefilep, "jpg") > 1 )$kind_file="jpg";
-  if(strpos($namefilep, "jpeg") > 1 )$kind_file="jpeg";
-  if(strpos($namefilep, "pdf") > 1 )$kind_file="pdf";
-  if(strpos($namefilep, "rar") > 1 )$kind_file="rar";
-  if(strpos($namefilep, "zip") > 1 )$kind_file="zip";
-  if(strpos($namefilep, "doc") > 1 )$kind_file="doc";
-  if(strpos($namefilep, "docx") > 1 )$kind_file="docx";
-  if(strpos($namefilep, "xlsx") > 1 )$kind_file="xlsx";
-  if(strpos($namefilep, "xls") > 1 )$kind_file="xls";
-  if(strpos($namefilep, "png") > 1 )$kind_file="png";
-  
-  $hajm=round(($_FILES['file_peyvast']['size']/1024),2);
-  //---------------------------------------------------------
-  
-  $code_file="FI-".$code_ticket."-".$code_pasokh."-".rand(11,99);
-  
-  if($kind_file!=""){
-      
-      if(move_uploaded_file($_FILES["file_peyvast"]["tmp_name"], "../files/peyvast/" . $code_file.".".$kind_file)){
-      $ok_upload="y";
-      }}
-  
-  
-  
-  if($ok_upload=="y"){
-  
-  $Qery.="INSERT INTO `file_pasokh` (`code_ticket`, `code_pasokh`, `code_file`, `titr`, `kind`, `hajm`,`vaziat`, `i_file`) 
-VALUES ('$code_ticket', '$code_pasokh', '$code_file', '$titr', '$kind_file','$hajm','m', NULL);";
-
+ WHERE `code` ='$code_ticket_escaped'; ";
   }
-//----------------------------------------------------- send email for poshtiban
 
 
+  //--------------------------------------------------------------------------------------sabt_file
 
+  //-------------------------------------------------------------------------------------- MULTI FILE UPLOAD
 
+  if (
+    isset($_FILES['file_peyvast']) &&
+    !empty($_FILES['file_peyvast']['name'][0])
+  ) {
 
+    $allowed_extensions = [
+      'jpg',
+      'jpeg',
+      'png',
+      'pdf',
+      'doc',
+      'docx',
+      'xls',
+      'xlsx',
+      'zip',
+      'rar'
+    ];
 
+    $total_files = count($_FILES['file_peyvast']['name']);
 
+    for ($i = 0; $i < $total_files; $i++) {
 
+      if ($_FILES['file_peyvast']['error'][$i] != UPLOAD_ERR_OK) {
+        continue;
+      }
 
+      $original_name =
+        strtolower($_FILES['file_peyvast']['name'][$i]);
 
+      $kind_file =
+        strtolower(
+          pathinfo(
+            $original_name,
+            PATHINFO_EXTENSION
+          )
+        );
 
+      if (!in_array($kind_file, $allowed_extensions)) {
+        continue;
+      }
 
+      $hajm =
+        round(
+          ($_FILES['file_peyvast']['size'][$i] / 1024),
+          2
+        );
 
+      $code_file =
+        "FI-" .
+        $code_ticket .
+        "-" .
+        $code_pasokh .
+        "-" .
+        $i .
+        "-" .
+        rand(1000, 9999);
 
+      $destination =
+        "../files/peyvast/" .
+        $code_file .
+        "." .
+        $kind_file;
 
+      if (
+        move_uploaded_file(
+          $_FILES['file_peyvast']['tmp_name'][$i],
+          $destination
+        )
+      ) {
 
+        $file_title =
+          mysqli_real_escape_string(
+            $Link,
+            $original_name
+          );
 
+        $Qery .= "
+          INSERT INTO `file_pasokh`
+          (
+              `code_ticket`,
+              `code_pasokh`,
+              `code_file`,
+              `titr`,
+              `kind`,
+              `hajm`,
+              `vaziat`,
+              `i_file`
+          )
+          VALUES
+          (
+              '$code_ticket',
+              '$code_pasokh',
+              '$code_file',
+              '$file_title',
+              '$kind_file',
+              '$hajm',
+              'm',
+              NULL
+          );";
+      }
+    }
+  }
 
+  //-------------------------------------------------------------------------------------- END MULTI FILE UPLOAD
 
+  if ($Link->multi_query($Qery) === TRUE) {
+    $sabt_dastor = "y";
 
+    if ($vaziat_tt != "a") {
+      $apiResult = updateTicket($code_ticket);
+      if ($apiResult && !$apiResult['success']) {
+        error_log('Jaryanyar updateTicket failed for ' . $code_ticket . ': ' . ($apiResult['error'] ?? json_encode($apiResult['response'])));
+      }
+    }
 
+    //---------------------------------------------	    
+    //----------------------------------send sms
+    // Include SMS helper function
+    require_once(__DIR__ . '/../../inf/s_sms.php');
 
-//-----------------------------------------------------------------------------
+    // Check if reply is from ticket creator (sender)
+    $is_ticket_creator = ($code_p_run == $code_karbar2);
 
-    
-} // name_file
-	if ($Link->multi_query($Qery) === TRUE) {	    
-	    $sabt_dastor="y";
-	    
-//---------------------------------------------	    
-//----------------------------------send sms
-// Include SMS helper function
-require_once(__DIR__ . '/../../inf/s_sms.php');
-
-// Check if reply is from ticket creator (sender)
-$is_ticket_creator = ($code_p_run == $code_karbar2);
-
-// If ticket creator replied, send SMS to assigned user
-if ($is_ticket_creator && !empty($code_karbar_anjam)) {
-    // Get assigned user's phone number (already fetched as $tel_task_send)
-    if (!empty($tel_task_send)) {
+    // If ticket creator replied, send SMS to assigned user
+    if ($is_ticket_creator && !empty($code_karbar_anjam)) {
+      // Get assigned user's phone number (already fetched as $tel_task_send)
+      if (!empty($tel_task_send)) {
         // Prepare trimmed text for SMS
         $titr_trimmed = trim_text($titr, 80);
-        $matn_pasokh_trimmed = trim_text($matn_pasokh, 150);
-        
-        $sms_message = "✉️ پاسخ جدیدی برای تیکت پشتیبانی
+        $sms_result = send_sms_pattern($tel_task_send, [
+          'ticket_number' => $code_ticket,
+          'ticket_title' => $titr_trimmed
+        ], [
+          'pattern_code' => 'OPGd5jbPVp',
+          'line_number' => '3000505',
+          'number_format' => 'english'
+        ]);
 
-شماره تیکت: " . $code_ticket . "
-عنوان تیکت: " . $titr_trimmed . "
-کاربر ثبت کننده: " . $name_karbar2 . "
-
-پاسخ:
-" . $matn_pasokh_trimmed;
-        
-        send_sms_ippanel($tel_task_send, $sms_message);
+        if (!$sms_result['success']) {
+          error_log('IranPayamak reply SMS to supporter failed for ticket ' . $code_ticket . ': ' . $sms_result['message']);
+        }
+      } else {
+        error_log('IranPayamak reply SMS to supporter skipped for ticket ' . $code_ticket . ': supporter phone is empty');
+      }
     }
+    //----------------------------------------------------------------
+
+
+
+
+    header("location: ?page=info_ticket&code=$code_ticket&p=y");
+  } else {
+    header("location: ?page=info_ticket&code=$code_ticket&p=n");
+  }
+} else { //khali bodan
+  header("location: ?page=info_ticket&code=$code_ticket&p=t");
 }
-//----------------------------------end_send_sms
-
-$payam="پاسخ کاربر به تیکت : 
-*".$titr."*
-ثبت کننده :".$name_karbar_run."
-پاسخ:
-".$matn_pasokh."
-
-کاربر انجام : ".
-$name_karbar5;
-
-$mmfooter="
---------------
-سامانه تیکت رابین
-https://request-r.ir
-";
-
-$payam_end=$payam.$mmfooter;
-
-//-----------------------------------------------------------------
-
-
-$curl = curl_init();
-
-curl_setopt_array($curl, array(
-   CURLOPT_URL => 'https://api.whatsiplus.com/sendMsg/ugv100n-yiirrcz-dkk7v38-bg6f45w-wmfvek5',
-   CURLOPT_RETURNTRANSFER => true,  
-   CURLOPT_ENCODING => '',  
-   CURLOPT_MAXREDIRS => 10,  
-   CURLOPT_TIMEOUT => 0,  
-   CURLOPT_FOLLOWLOCATION => true,  
-   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,  
-   CURLOPT_CUSTOMREQUEST => 'POST',  
-   CURLOPT_POSTFIELDS => array(  
-       'phonenumber' => $tel_task_send,   
-       'message' => $payam_end,  
-   ),  
-));  
-
-$response = curl_exec($curl);  
-curl_close($curl);  
-//----------------------------------------------------------------
-	    
-	    
-	    
-	    
-	  header("location: ?page=new_gharardad&p=y");  
-  
-	    
-	}else{
-	    header("location: ?page=new_gharardad&p=n");      
-	}
-    
-}else{//khali bodan
-    header("location: ?page=new_gharardad&p=t");  
- } ?>
-
-

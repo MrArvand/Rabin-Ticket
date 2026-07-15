@@ -1,13 +1,7 @@
 <?php
 $categoryFilter = str_g('category');
 
-// Only show specific departments
-$allowedDepartments = ['new_software', 'IT_Network', 'process', 'BPMS', 'BI', 'payesh'];
-$departmentsPlaceholder = "'" . implode("','", array_map(function($dept) use ($Link) {
-    return mysqli_real_escape_string($Link, $dept);
-}, $allowedDepartments)) . "'";
-
-$categoryQuery = "SELECT id, name FROM departman WHERE (vaziat = 'y' AND id IN ($departmentsPlaceholder)) ORDER BY name ASC LIMIT 200";
+$categoryQuery = "SELECT id, name, default_company_code, default_company_name, division_code, division_name FROM departman WHERE vaziat = 'y' ORDER BY default_company_name ASC, division_name ASC, name ASC LIMIT 500";
 $categories = [];
 $categoryCounts = [];
 
@@ -36,8 +30,34 @@ if ($resultCounts = mysqli_query($Link, $countQuery)) {
     mysqli_free_result($resultCounts);
 }
 
+$selectedCategory = $categoryFilter;
+
+$companyOptions = [];
+$divisionOptions = [];
+$selectedCompany = '';
+$selectedDivision = '';
+
+foreach ($categories as $category) {
+    $companyCode = $category['default_company_code'] ?? '';
+    $divisionCode = $category['division_code'] ?? '';
+
+    if ($companyCode !== '') {
+        $companyOptions[$companyCode] = $category['default_company_name'] ?: $companyCode;
+    }
+    if ($divisionCode !== '') {
+        $divisionOptions[$divisionCode] = $category['division_name'] ?: $divisionCode;
+    }
+    if ($category['id'] === $selectedCategory) {
+        $selectedCompany = $companyCode;
+        $selectedDivision = $divisionCode;
+    }
+}
+
+asort($companyOptions, SORT_FLAG_CASE | SORT_STRING);
+asort($divisionOptions, SORT_FLAG_CASE | SORT_STRING);
+
 // Show tickets with status 'a' or 'm', limit to last 20 per category
-$ticketsQuery = "SELECT code, titr, name_karbar, name_sherkat, name_daste, daste, tarikh_sabt, saat_sabt, olaviat, vaziat, IFNULL(priority_status, 'n') AS priority_status, priority_order FROM ticket WHERE (vaziat IN ('a', 'm')) " . (!empty($categoryFilter) ? "AND daste = '" . mysqli_real_escape_string($Link, $categoryFilter) . "'" : "") . " ORDER BY priority_status DESC, priority_order ASC, i_ticket DESC LIMIT 20";
+$ticketsQuery = "SELECT code, titr, name_karbar, name_sherkat, name_daste, daste, tarikh_sabt, saat_sabt, olaviat, vaziat, IFNULL(priority_status, 'n') AS priority_status, priority_order, (SELECT default_company_name FROM departman WHERE id = ticket.daste LIMIT 1) AS dept_company_name, (SELECT division_name FROM departman WHERE id = ticket.daste LIMIT 1) AS dept_division_name FROM ticket WHERE (vaziat IN ('a', 'm')) " . (!empty($categoryFilter) ? "AND daste = '" . mysqli_real_escape_string($Link, $categoryFilter) . "'" : "") . " ORDER BY priority_status DESC, priority_order ASC, i_ticket DESC LIMIT 20";
 
 $prioritizedTickets = [];
 $unprioritizedTickets = [];
@@ -79,8 +99,6 @@ $priorityLabels = [
     '3' => ['label' => 'معمولی', 'class' => 'info'],
     '4' => ['label' => 'پایین', 'class' => 'secondary']
 ];
-
-$selectedCategory = $categoryFilter;
 ?>
 
 <link rel="stylesheet" href="https://unpkg.com/dragula@3.7.3/dist/dragula.min.css">
@@ -226,70 +244,9 @@ $selectedCategory = $categoryFilter;
     box-shadow: 0 18px 32px -20px rgba(15, 23, 42, 0.75);
 }
 
-.category-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-}
-
-.category-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 20px;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    background: linear-gradient(135deg, rgba(17, 24, 39, 0.85), rgba(28, 31, 33, 0.78));
-    color: var(--kanban-text);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-}
-
-.category-chip:hover {
-    border-color: rgba(59, 130, 246, 0.5);
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(17, 24, 39, 0.85));
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.4);
-}
-
-.category-chip.active {
-    border-color: var(--kanban-accent);
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(17, 24, 39, 0.85));
-    box-shadow: 0 4px 14px -4px rgba(37, 99, 235, 0.55);
-}
-
-.category-chip .count-badge {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    min-width: 20px;
-    text-align: center;
-}
-
-.category-chip.active .count-badge {
-    background: linear-gradient(135deg, #1d4ed8, #1e40af);
-    box-shadow: 0 2px 8px -2px rgba(37, 99, 235, 0.6);
-}
-
 @media (max-width: 767.98px) {
     .kanban-dropzone {
         min-height: 120px;
-    }
-
-    .category-chips {
-        gap: 6px;
-    }
-
-    .category-chip {
-        padding: 6px 12px;
-        font-size: 0.8125rem;
     }
 }
 </style>
@@ -303,22 +260,152 @@ $selectedCategory = $categoryFilter;
                     <p class="text-muted mb-3 small">تیکت های در وضعیت ثبت اولیه و در حال بررسی نمایش داده می‌شوند
                         (حداکثر 20 تیکت از هر دسته). کارت‌ها را برای تعیین اولویت جابه‌جا کنید.</p>
                 </div>
-                <div class="category-chips">
-                    <?php foreach ($categories as $category): ?>
-                    <?php
-                        $catId = $category['id'];
-                        $catName = $category['name'];
-                        $count = isset($categoryCounts[$catId]) ? $categoryCounts[$catId] : 0;
-                        $isActive = $selectedCategory === $catId;
-                        ?>
-                    <a href="?page=priority&category=<?php echo htmlspecialchars($catId, ENT_QUOTES, 'UTF-8'); ?>"
-                        class="category-chip <?php echo $isActive ? 'active' : ''; ?>"
-                        data-category-id="<?php echo htmlspecialchars($catId, ENT_QUOTES, 'UTF-8'); ?>">
-                        <span><?php echo htmlspecialchars($catName, ENT_QUOTES, 'UTF-8'); ?></span>
-                        <span class="count-badge"><?php echo $count; ?></span>
-                    </a>
-                    <?php endforeach; ?>
+                <?php if (!empty($categories)): ?>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label small text-muted mb-1"><i class="bi bi-building me-1"></i>شرکت</label>
+                        <select class="form-select form-select-sm" id="priorityCompanyFilter">
+                            <option value=""<?php echo $selectedCompany === '' ? ' selected' : ''; ?>>همه شرکت‌ها</option>
+                            <?php foreach ($companyOptions as $ccode => $cname): ?>
+                                <option value="<?php echo htmlspecialchars($ccode, ENT_QUOTES, 'UTF-8'); ?>"<?php echo $selectedCompany === $ccode ? ' selected' : ''; ?>><?php echo htmlspecialchars($cname, ENT_QUOTES, 'UTF-8'); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label small text-muted mb-1"><i class="bi bi-diagram-3 me-1"></i>معاونت</label>
+                        <select class="form-select form-select-sm" id="priorityDivisionFilter">
+                            <option value=""<?php echo $selectedDivision === '' ? ' selected' : ''; ?>>همه معاونت‌ها</option>
+                            <?php
+                            $seenDivisions = [];
+                            foreach ($categories as $category):
+                                $dcode = $category['division_code'] ?? '';
+                                $ccode = $category['default_company_code'] ?? '';
+                                if ($dcode === '') continue;
+                                $divKey = $ccode . '::' . $dcode;
+                                if (isset($seenDivisions[$divKey])) continue;
+                                $seenDivisions[$divKey] = true;
+                                $dname = $category['division_name'] ?: $dcode;
+                                $isSelected = ($selectedDivision === $dcode && $selectedCompany === $ccode);
+                            ?>
+                                <option value="<?php echo htmlspecialchars($dcode, ENT_QUOTES, 'UTF-8'); ?>" data-company="<?php echo htmlspecialchars($ccode, ENT_QUOTES, 'UTF-8'); ?>"<?php echo $isSelected ? ' selected' : ''; ?>><?php echo htmlspecialchars($dname, ENT_QUOTES, 'UTF-8'); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label small text-muted mb-1"><i class="bi bi-folder me-1"></i>دپارتمان</label>
+                        <select class="form-select form-select-sm" id="priorityDepartmentFilter">
+                            <?php foreach ($categories as $category):
+                                $catId = $category['id'];
+                                $count = isset($categoryCounts[$catId]) ? (int) $categoryCounts[$catId] : 0;
+                                $label = $category['name'] . ' (' . $count . ')';
+                            ?>
+                                <option value="<?php echo htmlspecialchars($catId, ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-company="<?php echo htmlspecialchars($category['default_company_code'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-division="<?php echo htmlspecialchars($category['division_code'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                    <?php echo $selectedCategory === $catId ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-12 col-lg-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="priorityResetFilters">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>حذف فیلترها
+                        </button>
+                    </div>
                 </div>
+                <script>
+                (function() {
+                    var companyFilter = document.getElementById('priorityCompanyFilter');
+                    var divisionFilter = document.getElementById('priorityDivisionFilter');
+                    var departmentFilter = document.getElementById('priorityDepartmentFilter');
+                    var resetBtn = document.getElementById('priorityResetFilters');
+                    var selectedCategory = <?php echo json_encode($selectedCategory, JSON_UNESCAPED_UNICODE); ?>;
+                    var navigating = false;
+
+                    function filterOptions(selectEl, matchFn) {
+                        if (!selectEl) return;
+                        selectEl.querySelectorAll('option').forEach(function(opt) {
+                            if (opt.value === '') return;
+                            var show = matchFn(opt);
+                            opt.hidden = !show;
+                            opt.disabled = !show;
+                        });
+                    }
+
+                    function syncDivisionFilter() {
+                        var company = companyFilter ? companyFilter.value : '';
+                        filterOptions(divisionFilter, function(opt) {
+                            if (company === '') return true;
+                            return (opt.getAttribute('data-company') || '') === company;
+                        });
+                        if (divisionFilter && divisionFilter.value) {
+                            var curDiv = divisionFilter.options[divisionFilter.selectedIndex];
+                            if (curDiv && curDiv.disabled) divisionFilter.value = '';
+                        }
+                    }
+
+                    function syncDepartmentFilter() {
+                        var company = companyFilter ? companyFilter.value : '';
+                        var division = divisionFilter ? divisionFilter.value : '';
+                        filterOptions(departmentFilter, function(opt) {
+                            var optCompany = opt.getAttribute('data-company') || '';
+                            var optDivision = opt.getAttribute('data-division') || '';
+                            if (company !== '' && optCompany !== company) return false;
+                            if (division !== '' && optDivision !== division) return false;
+                            return true;
+                        });
+                    }
+
+                    function getFirstVisibleDepartment() {
+                        if (!departmentFilter) return '';
+                        for (var i = 0; i < departmentFilter.options.length; i++) {
+                            var opt = departmentFilter.options[i];
+                            if (!opt.disabled && opt.value !== '') return opt.value;
+                        }
+                        return '';
+                    }
+
+                    function navigateToCategory(deptId) {
+                        if (!deptId || navigating || deptId === selectedCategory) return;
+                        navigating = true;
+                        window.location.href = '?page=priority&category=' + encodeURIComponent(deptId);
+                    }
+
+                    function applyFilters(autoNavigateIfNeeded) {
+                        syncDivisionFilter();
+                        syncDepartmentFilter();
+                        if (!departmentFilter) return;
+                        var currentOpt = departmentFilter.options[departmentFilter.selectedIndex];
+                        if (currentOpt && !currentOpt.disabled && currentOpt.value !== '') {
+                            return;
+                        }
+                        var first = getFirstVisibleDepartment();
+                        if (first) {
+                            departmentFilter.value = first;
+                            if (autoNavigateIfNeeded) navigateToCategory(first);
+                        }
+                    }
+
+                    if (companyFilter) companyFilter.addEventListener('change', function() { applyFilters(true); });
+                    if (divisionFilter) divisionFilter.addEventListener('change', function() { applyFilters(true); });
+                    if (departmentFilter) {
+                        departmentFilter.addEventListener('change', function() {
+                            navigateToCategory(departmentFilter.value);
+                        });
+                    }
+                    if (resetBtn) {
+                        resetBtn.addEventListener('click', function() {
+                            if (companyFilter) companyFilter.value = '';
+                            if (divisionFilter) divisionFilter.value = '';
+                            applyFilters(true);
+                        });
+                    }
+
+                    applyFilters(false);
+                })();
+                </script>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -383,6 +470,12 @@ $selectedCategory = $categoryFilter;
                                     <?php echo htmlspecialchars($ticket['name_karbar'] ?? '---', ENT_QUOTES, 'UTF-8'); ?></span>
                                 <span class="badge border border-info text-info kanban-badge">شرکت:
                                     <?php echo htmlspecialchars($ticket['name_sherkat'] ?? '---', ENT_QUOTES, 'UTF-8'); ?></span>
+                                <?php if (!empty($ticket['dept_company_name'])): ?>
+                                <span class="badge bg-primary kanban-badge">شرکت گیرنده: <?php echo htmlspecialchars($ticket['dept_company_name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <?php endif; ?>
+                                <?php if (!empty($ticket['dept_division_name'])): ?>
+                                <span class="badge bg-info kanban-badge">معاونت: <?php echo htmlspecialchars($ticket['dept_division_name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <?php endif; ?>
                                 <span class="text-muted small">ثبت:
                                     <?php echo htmlspecialchars(($ticket['tarikh_sabt'] ?? '') . ' - ' . ($ticket['saat_sabt'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
                             </div>
@@ -465,6 +558,12 @@ $selectedCategory = $categoryFilter;
                                     <?php echo htmlspecialchars($ticket['name_karbar'] ?? '---', ENT_QUOTES, 'UTF-8'); ?></span>
                                 <span class="badge border border-info text-info kanban-badge">شرکت:
                                     <?php echo htmlspecialchars($ticket['name_sherkat'] ?? '---', ENT_QUOTES, 'UTF-8'); ?></span>
+                                <?php if (!empty($ticket['dept_company_name'])): ?>
+                                <span class="badge bg-primary kanban-badge">شرکت گیرنده: <?php echo htmlspecialchars($ticket['dept_company_name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <?php endif; ?>
+                                <?php if (!empty($ticket['dept_division_name'])): ?>
+                                <span class="badge bg-info kanban-badge">معاونت: <?php echo htmlspecialchars($ticket['dept_division_name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <?php endif; ?>
                                 <span class="text-muted small">ثبت:
                                     <?php echo htmlspecialchars(($ticket['tarikh_sabt'] ?? '') . ' - ' . ($ticket['saat_sabt'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
                             </div>

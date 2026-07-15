@@ -1,32 +1,20 @@
 <?php
-// Define the group kinds and their display names
-$groupKinds = [
-    'software' => 'نرم‌افزار',
-    'bi' => 'BI',
-    'branding' => 'برندینگ',
-    'proccess' => 'فرآیند',
-    'bpms' => 'BPMS',
-    'it' => 'IT',
-    'hr' => 'منابع انسانی',
-    'poshtiban' => 'پشتیبان',
-    'payesh' => 'پایش'
-];
-
-$usersQuery = "SELECT name, code_p, semat, avatar, kind FROM karbar WHERE vaziat='y' ORDER BY name ASC LIMIT 500";
-$users = [];
+// Active users indexed by personnel code
+$usersQuery = "SELECT name, code_p, semat, avatar FROM karbar WHERE vaziat='y' ORDER BY name ASC LIMIT 500";
+$usersByCode = [];
 if ($result = mysqli_query($Link, $usersQuery)) {
     while ($row = mysqli_fetch_assoc($result)) {
-        $users[] = $row;
+        $row['ticket_code'] = '';
+        $row['ticket_titr'] = '';
+        $usersByCode[$row['code_p']] = $row;
     }
     mysqli_free_result($result);
 }
 
 // Attach latest "working" ticket (status = 'w') to each active user
-foreach ($users as &$user) {
-    $userCode = mysqli_real_escape_string($Link, $user['code_p']);
+foreach ($usersByCode as $code => &$user) {
+    $userCode = mysqli_real_escape_string($Link, (string) $code);
     $ticketQuery = "SELECT code, titr FROM ticket WHERE code_p_karbar_anjam = '{$userCode}' AND vaziat = 'w' ORDER BY i_ticket DESC LIMIT 1";
-    $user['ticket_code'] = '';
-    $user['ticket_titr'] = '';
     if ($ticketResult = mysqli_query($Link, $ticketQuery)) {
         if ($ticketRow = mysqli_fetch_assoc($ticketResult)) {
             $user['ticket_code'] = $ticketRow['code'];
@@ -37,21 +25,74 @@ foreach ($users as &$user) {
 }
 unset($user);
 
-// Group users by kind, and if kind is 'bi-software', show in both 'bi' and 'software'
-$groupedUsers = [];
-foreach ($users as $user) {
-    $kind = $user['kind'] ?? '';
-    if ($kind === 'bi-software') {
-        // Add to both 'bi' and 'software' groups
-        foreach (['bi', 'software'] as $multiKind) {
-            if (!isset($groupedUsers[$multiKind])) $groupedUsers[$multiKind] = [];
-            $groupedUsers[$multiKind][] = $user;
+// Ensure the connection table exists
+mysqli_query($Link, "CREATE TABLE IF NOT EXISTS department_user (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    department_id VARCHAR(255) NOT NULL,
+    user_code VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uniq_department_user (department_id, user_code),
+    KEY idx_department_id (department_id),
+    KEY idx_user_code (user_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+// Group users by department (company -> division -> department) via connections
+$deptGroups = [];
+$companyOptions = [];
+$divisionOptions = [];
+$departmentOptions = [];
+$assignedCodes = [];
+
+$connSql = "SELECT du.user_code, d.id AS dept_id, d.name AS dept_name,
+                   d.default_company_code, d.default_company_name,
+                   d.division_code, d.division_name
+            FROM department_user du
+            INNER JOIN departman d ON d.id = du.department_id
+            WHERE d.vaziat = 'y'
+            ORDER BY d.default_company_name ASC, d.division_name ASC, d.name ASC";
+if ($connRes = mysqli_query($Link, $connSql)) {
+    while ($connRow = mysqli_fetch_assoc($connRes)) {
+        $deptId = $connRow['dept_id'];
+        if (!isset($deptGroups[$deptId])) {
+            $deptGroups[$deptId] = [
+                'dept_id'       => $deptId,
+                'dept_name'     => $connRow['dept_name'],
+                'company_code'  => $connRow['default_company_code'] ?? '',
+                'company_name'  => $connRow['default_company_name'] ?? '',
+                'division_code' => $connRow['division_code'] ?? '',
+                'division_name' => $connRow['division_name'] ?? '',
+                'users'         => [],
+            ];
+            if (!empty($connRow['default_company_code'])) {
+                $companyOptions[$connRow['default_company_code']] = $connRow['default_company_name'] ?: $connRow['default_company_code'];
+            }
+            if (!empty($connRow['division_code'])) {
+                $divisionOptions[$connRow['division_code']] = $connRow['division_name'] ?: $connRow['division_code'];
+            }
+            $departmentOptions[$deptId] = $connRow['dept_name'];
         }
-    } else {
-        if (!isset($groupedUsers[$kind])) $groupedUsers[$kind] = [];
-        $groupedUsers[$kind][] = $user;
+        if (isset($usersByCode[$connRow['user_code']])) {
+            $deptGroups[$deptId]['users'][] = $usersByCode[$connRow['user_code']];
+            $assignedCodes[$connRow['user_code']] = true;
+        }
+    }
+    mysqli_free_result($connRes);
+}
+
+asort($companyOptions, SORT_FLAG_CASE | SORT_STRING);
+asort($divisionOptions, SORT_FLAG_CASE | SORT_STRING);
+asort($departmentOptions, SORT_FLAG_CASE | SORT_STRING);
+
+// Users not connected to any department
+$unassignedUsers = [];
+foreach ($usersByCode as $code => $u) {
+    if (empty($assignedCodes[$code])) {
+        $unassignedUsers[] = $u;
     }
 }
+
+$hasAnyGroup = !empty($deptGroups) || !empty($unassignedUsers);
 ?>
 
 <style>
@@ -215,73 +256,125 @@ body.ticket-modal-open {
                     روی کاربرانی که تیکت «در حال انجام» دارند کلیک کنید تا جزئیات همان تیکت در یک پنجره بازشو نمایش داده
                     شود.
                 </p>
-                <!-- Filter chips -->
-                <div class="d-flex flex-wrap gap-2 align-items-center mb-1" id="kindFilterChips">
-                    <button type="button" class="btn btn-sm btn-outline-primary kind-chip active"
-                        data-kind="all">همه</button>
-                    <?php foreach ($groupKinds as $kindKey => $kindLabel): ?>
-                    <button type="button" class="btn btn-sm btn-outline-primary kind-chip"
-                        data-kind="<?php echo htmlspecialchars($kindKey, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($kindLabel, ENT_QUOTES, 'UTF-8'); ?></button>
-                    <?php endforeach; ?>
+                <?php if ($hasAnyGroup): ?>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label small text-muted mb-1"><i class="bi bi-building me-1"></i>شرکت</label>
+                        <select class="form-select form-select-sm" id="workingCompanyFilter">
+                            <option value="">همه شرکت‌ها</option>
+                            <?php foreach ($companyOptions as $ccode => $cname): ?>
+                                <option value="<?php echo htmlspecialchars($ccode, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($cname, ENT_QUOTES, 'UTF-8'); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label small text-muted mb-1"><i class="bi bi-diagram-3 me-1"></i>معاونت</label>
+                        <select class="form-select form-select-sm" id="workingDivisionFilter">
+                            <option value="">همه معاونت‌ها</option>
+                            <?php foreach ($divisionOptions as $dcode => $dname): ?>
+                                <option value="<?php echo htmlspecialchars($dcode, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($dname, ENT_QUOTES, 'UTF-8'); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label small text-muted mb-1"><i class="bi bi-folder me-1"></i>دپارتمان</label>
+                        <select class="form-select form-select-sm" id="workingDepartmentFilter">
+                            <option value="">همه دپارتمان‌ها</option>
+                            <?php foreach ($departmentOptions as $depCode => $depName): ?>
+                                <option value="<?php echo htmlspecialchars($depCode, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($depName, ENT_QUOTES, 'UTF-8'); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-12 col-lg-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="workingResetFilters">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>حذف فیلترها
+                        </button>
+                    </div>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row gx-3" id="userCardsContainer">
-    <?php if (empty($users)): ?>
-    <div class="col-12">
-        <div class="alert alert-info mb-0">کاربری برای نمایش وجود ندارد.</div>
-    </div>
-    <?php else: ?>
-    <?php foreach ($groupKinds as $kindKey => $kindLabel): ?>
-    <?php if (!empty($groupedUsers[$kindKey])): ?>
-    <div class="col-12 kind-group" data-kind-group="<?php echo htmlspecialchars($kindKey, ENT_QUOTES, 'UTF-8'); ?>">
-        <div class="mb-2 mt-3"><span
-                class="fw-bold text-primary"><?php echo htmlspecialchars($kindLabel, ENT_QUOTES, 'UTF-8'); ?></span>
-        </div>
-        <div class="row gx-3">
-            <?php foreach ($groupedUsers[$kindKey] as $user): ?>
-            <?php
-                                $displayName = htmlspecialchars($user['name'], ENT_QUOTES, 'UTF-8');
-                                $role = htmlspecialchars($user['semat'] ?? '', ENT_QUOTES, 'UTF-8');
-                                $avatar = htmlspecialchars($user['avatar'] ?? 'karbar', ENT_QUOTES, 'UTF-8');
-                                $ticketCode = $user['ticket_code'] ? htmlspecialchars($user['ticket_code'], ENT_QUOTES, 'UTF-8') : '';
-                                $ticketTitr = $user['ticket_titr'] ? htmlspecialchars($user['ticket_titr'], ENT_QUOTES, 'UTF-8') : 'فاقد تیکت در حال انجام';
-                                $hasTicket = $ticketCode !== '' ? '1' : '0';
-                            ?>
-            <div class="col-12 col-md-6 col-lg-4 mb-3">
-                <div class="card h-100 ticket-card ticket-card-clickable" data-ticket-code="<?php echo $ticketCode; ?>"
-                    data-has-ticket="<?php echo $hasTicket; ?>"
-                    data-kind="<?php echo htmlspecialchars($kindKey, ENT_QUOTES, 'UTF-8'); ?>">
-                    <div class="card-body d-flex align-items-start gap-3">
-                        <img src="assets/images/<?php echo $avatar; ?>.png" class="img-3x rounded-3"
-                            alt="<?php echo $displayName; ?>">
-                        <div class="flex-fill">
-                            <h6 class="mb-1"><?php echo $displayName; ?></h6>
-                            <div class="small text-muted mb-2"><?php echo $role; ?></div>
-                            <div class="badge w-100 text-truncate<?php echo $hasTicket === '1' ? ' badge-has-ticket' : ' bg-light text-dark border'; ?>"
-                                title="<?php echo $ticketTitr; ?>"
-                                <?php if ($hasTicket === '1') { echo ' style="background:rgb(35,212,90);color:#fff;border:none;"'; } ?>>
-                                <?php
-                                    $maxLen = 60;
-                                    if (mb_strlen($ticketTitr) > $maxLen) {
-                                        echo htmlspecialchars(mb_substr($ticketTitr, 0, $maxLen), ENT_QUOTES, 'UTF-8') . '...';
-                                    } else {
-                                        echo $ticketTitr;
-                                    }
-                                ?>
-                            </div>
-                        </div>
+<?php
+// Renders a single user card
+$renderUserCard = function ($user) {
+    $displayName = htmlspecialchars($user['name'], ENT_QUOTES, 'UTF-8');
+    $role = htmlspecialchars($user['semat'] ?? '', ENT_QUOTES, 'UTF-8');
+    $avatar = htmlspecialchars($user['avatar'] ?? 'karbar', ENT_QUOTES, 'UTF-8');
+    $ticketCode = $user['ticket_code'] ? htmlspecialchars($user['ticket_code'], ENT_QUOTES, 'UTF-8') : '';
+    $ticketTitr = $user['ticket_titr'] ? htmlspecialchars($user['ticket_titr'], ENT_QUOTES, 'UTF-8') : 'فاقد تیکت در حال انجام';
+    $hasTicket = $ticketCode !== '' ? '1' : '0';
+    ?>
+    <div class="col-12 col-md-6 col-lg-4 mb-3">
+        <div class="card h-100 ticket-card ticket-card-clickable" data-ticket-code="<?php echo $ticketCode; ?>"
+            data-has-ticket="<?php echo $hasTicket; ?>">
+            <div class="card-body d-flex align-items-start gap-3">
+                <img src="assets/images/<?php echo $avatar; ?>.png" class="img-3x rounded-3" alt="<?php echo $displayName; ?>">
+                <div class="flex-fill">
+                    <h6 class="mb-1"><?php echo $displayName; ?></h6>
+                    <div class="small text-muted mb-2"><?php echo $role; ?></div>
+                    <div class="badge w-100 text-truncate<?php echo $hasTicket === '1' ? ' badge-has-ticket' : ' bg-light text-dark border'; ?>"
+                        title="<?php echo $ticketTitr; ?>"
+                        <?php if ($hasTicket === '1') { echo ' style="background:rgb(35,212,90);color:#fff;border:none;"'; } ?>>
+                        <?php
+                        $maxLen = 60;
+                        echo (mb_strlen($ticketTitr) > $maxLen)
+                            ? htmlspecialchars(mb_substr($ticketTitr, 0, $maxLen), ENT_QUOTES, 'UTF-8') . '...'
+                            : $ticketTitr;
+                        ?>
                     </div>
                 </div>
             </div>
-            <?php endforeach; ?>
         </div>
     </div>
-    <?php endif; ?>
-    <?php endforeach; ?>
+    <?php
+};
+?>
+
+<div class="row gx-3" id="userCardsContainer">
+    <?php if (!$hasAnyGroup): ?>
+    <div class="col-12">
+        <div class="alert alert-info mb-0">هیچ دپارتمان یا کاربری برای نمایش وجود ندارد.</div>
+    </div>
+    <?php else: ?>
+        <?php foreach ($deptGroups as $group): ?>
+        <div class="col-12 dept-group"
+            data-company="<?php echo htmlspecialchars($group['company_code'], ENT_QUOTES, 'UTF-8'); ?>"
+            data-division="<?php echo htmlspecialchars($group['division_code'], ENT_QUOTES, 'UTF-8'); ?>"
+            data-department="<?php echo htmlspecialchars($group['dept_id'], ENT_QUOTES, 'UTF-8'); ?>">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mt-3">
+                <span class="fw-bold"><i class="bi bi-folder me-1"></i><?php echo htmlspecialchars($group['dept_name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                <?php if (!empty($group['company_name'])): ?>
+                    <span class="badge bg-primary-subtle text-primary-emphasis"><i class="bi bi-building me-1"></i><?php echo htmlspecialchars($group['company_name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                <?php endif; ?>
+                <?php if (!empty($group['division_name'])): ?>
+                    <span class="badge bg-info-subtle text-info-emphasis"><i class="bi bi-diagram-3 me-1"></i><?php echo htmlspecialchars($group['division_name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                <?php endif; ?>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis"><?php echo count($group['users']); ?> کاربر</span>
+            </div>
+            <div class="row gx-3">
+                <?php if (empty($group['users'])): ?>
+                    <div class="col-12"><div class="text-muted small mb-2">کاربری به این دپارتمان متصل نشده است.</div></div>
+                <?php else: ?>
+                    <?php foreach ($group['users'] as $user) { $renderUserCard($user); } ?>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+
+        <?php if (!empty($unassignedUsers)): ?>
+        <div class="col-12 dept-group" data-company="" data-division="" data-department="">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mt-3">
+                <span class="fw-bold text-muted"><i class="bi bi-folder-x me-1"></i>بدون دپارتمان</span>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis"><?php echo count($unassignedUsers); ?> کاربر</span>
+            </div>
+            <div class="row gx-3">
+                <?php foreach ($unassignedUsers as $user) { $renderUserCard($user); } ?>
+            </div>
+        </div>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 
@@ -415,27 +508,41 @@ body.ticket-modal-open {
         }
     });
 
-    // Filtering logic
-    const chips = document.querySelectorAll('.kind-chip');
-    const groups = document.querySelectorAll('.kind-group');
-    chips.forEach(chip => {
-        chip.addEventListener('click', function() {
-            chips.forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            const kind = chip.getAttribute('data-kind');
-            if (kind === 'all') {
-                groups.forEach(g => g.style.display = '');
-            } else {
-                groups.forEach(g => {
-                    if (g.getAttribute('data-kind-group') === kind) {
-                        g.style.display = '';
-                    } else {
-                        g.style.display = 'none';
-                    }
-                });
-            }
+    // Filtering logic: company / division / department on department groups
+    const groups = document.querySelectorAll('.dept-group');
+    const companyFilter = document.getElementById('workingCompanyFilter');
+    const divisionFilter = document.getElementById('workingDivisionFilter');
+    const departmentFilter = document.getElementById('workingDepartmentFilter');
+    const resetFiltersBtn = document.getElementById('workingResetFilters');
+
+    function matchSelect(filterValue, groupValue) {
+        if (filterValue === '') return true;
+        return groupValue === filterValue;
+    }
+
+    function applyWorkingFilters() {
+        const companyVal = companyFilter ? companyFilter.value : '';
+        const divisionVal = divisionFilter ? divisionFilter.value : '';
+        const departmentVal = departmentFilter ? departmentFilter.value : '';
+        groups.forEach(group => {
+            const show = matchSelect(companyVal, group.getAttribute('data-company') || '') &&
+                matchSelect(divisionVal, group.getAttribute('data-division') || '') &&
+                matchSelect(departmentVal, group.getAttribute('data-department') || '');
+            group.style.display = show ? '' : 'none';
         });
-    });
+    }
+
+    if (companyFilter) companyFilter.addEventListener('change', applyWorkingFilters);
+    if (divisionFilter) divisionFilter.addEventListener('change', applyWorkingFilters);
+    if (departmentFilter) departmentFilter.addEventListener('change', applyWorkingFilters);
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            if (companyFilter) companyFilter.value = '';
+            if (divisionFilter) divisionFilter.value = '';
+            if (departmentFilter) departmentFilter.value = '';
+            applyWorkingFilters();
+        });
+    }
 
     // Modal card click logic
     document.querySelectorAll('.ticket-card-clickable').forEach(card => {

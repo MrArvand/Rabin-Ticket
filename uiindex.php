@@ -39,8 +39,10 @@ if($page=="new_mohtava")include('page/ui/new_mohtava.php');
 if($page=="list_mohtava")include('page/ui/list_mohtava.php');
 if($page=="list_qa")include('page/ui/list_qa.php');
 
+if($page=="manage_tags")include('page/ui/manage_tags.php');
+
 // Priority pages - conditional routing based on user code
-$special_view_codes = ["24277", "25662", "20612", "23056", "22695", "20072", "1100105", "1100056"];
+$special_view_codes = ["25662", "1100056", "1100085", "1100074", "1100097", "1064046037", "23056","22695","24277","20612"];
 
 if ($page == "priority" || $page == "set_priority" || $page == "view_priority") {
 
