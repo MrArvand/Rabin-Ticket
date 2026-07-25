@@ -1,0 +1,61 @@
+# Knowledge graph cache
+.code-review-graph/
+
+# Logs
+error_log
+*.log
+
+# Archives (fonts/assets are already extracted in repo)
+*.zip
+*.tar.gz
+*.rar
+
+# OS / shell artifacts
+nul
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*~
+**/__history/
+
+# Cursor / AI assistant tooling (local only)
+.cursor/
+.claude/
+.codebuddy/
+.gemini/
+.kiro/
+.qoder/
+.github/code-review-graph.instruction.md
+.mcp.json
+.cursorrules
+.windsurfrules
+opencode.jsonc
+AGENTS.md
+CLAUDE.md
+CODEBUDDY.md
+GEMINI.md
+QODER.md
+
+# Local secrets (use *.example.php templates)
+inf/mattermost_config.php
+
+# SSL verification tokens (regenerated on server)
+.well-known/acme-challenge/
+
+# Hosting / FTP artifacts
+ftp-ticket/.ftpquota
+
+# Runtime status files
+okonline.txt
+
+# Local database dumps (migrations/ stay tracked)
+ticket-schema.sql
+
+# Temporary / backup
+*.bak
+*.tmp
