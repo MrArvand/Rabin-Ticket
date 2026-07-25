@@ -84,6 +84,12 @@ if ($karbar_darkhast != "" && $olaviat != "" && $daste != "" && $titr != "" && $
   // Auto-assign to default user if exists, otherwise leave empty (status remains 'a')
   $code_p_karbar_anjam = $default_user_code;
   $name_karbar_anjam = $default_user_name;
+  $last_activity = mysqli_real_escape_string($Link, trim($tarikh . ' ' . $saat));
+
+  // Notify default assignee by code_p (strict per-user unread)
+  $code_karbar2_init = $code_p_karbar_anjam;
+  $name_karbar2_init = $name_karbar_anjam;
+  $oksee_init = !empty($code_p_karbar_anjam) ? 'n' : 'y';
 
   $Qery .= "
 INSERT INTO `ticket` (
@@ -108,6 +114,7 @@ INSERT INTO `ticket` (
   `tarikh_anjam`,
   `saat_anjam`,
   `log_txt`,
+  `last_activity`,
   `i_ticket`
 ) VALUES (
   '$titr',
@@ -131,15 +138,15 @@ INSERT INTO `ticket` (
   '',
   '',
   '$log_txt',
+  '$last_activity',
   NULL
 );
 ";
 
 
   $code_pasokh = "G-" . time() . "-" . rand(11, 99);
-  // این کوئری بررسی شود
   $Qery .= "INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
-VALUES ('$code_pasokh', '$code_ticket', '$code_p_run', '$name_karbar_run', '', '', '$matn', '$tarikh', '$saat', 'a', 'n', '', '', NULL);";
+VALUES ('$code_pasokh', '$code_ticket', '$code_p_run', '$name_karbar_run', '$code_karbar2_init', '$name_karbar2_init', '$matn', '$tarikh', '$saat', 'a', '$oksee_init', '', '', NULL);";
 
 
 

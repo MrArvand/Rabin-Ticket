@@ -69,14 +69,20 @@ if (!empty($daste)) {
 // Auto-assign to default user if exists, otherwise leave empty (status remains 'a')
 $code_p_karbar_anjam = $default_user_code;
 $name_karbar_anjam = $default_user_name;
+$name_daste_insert = !empty($department_name) ? mysqli_real_escape_string($Link, $department_name) : mysqli_real_escape_string($Link, $daste);
+$last_activity = mysqli_real_escape_string($Link, trim($tarikh . ' ' . $saat));
 
-$Qery="INSERT INTO `ticket` (`titr`, `olaviat`, `matn`, `code`, `code_p_karbar`, `name_karbar`,`tel_karbar`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `daste`, `name_daste`, `name_sherkat`, `code_sherkat`, `code_p_karbar_anjam`, `name_karbar_anjam`, `tarikh_anjam`, `saat_anjam`, `log_txt`, `i_ticket`) 
-VALUES ('$titr', '$olaviat', '$matn', '$code_ticket', '$karbar_p_darkhast', '$karbar_darkhast', '$tel_karbar', '$tarikh', '$saat', 'a', '$daste', '$daste', '$name_sherkat', '$sherkat', '$code_p_karbar_anjam', '$name_karbar_anjam', '', '', '$log_txt', NULL);";
+// Notify default assignee (code_p), not the requester display name
+$code_karbar2_init = $code_p_karbar_anjam;
+$name_karbar2_init = $name_karbar_anjam;
+$oksee_init = !empty($code_p_karbar_anjam) ? 'n' : 'y';
+
+$Qery="INSERT INTO `ticket` (`titr`, `olaviat`, `matn`, `code`, `code_p_karbar`, `name_karbar`,`tel_karbar`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `daste`, `name_daste`, `name_sherkat`, `code_sherkat`, `code_p_karbar_anjam`, `name_karbar_anjam`, `tarikh_anjam`, `saat_anjam`, `log_txt`, `last_activity`, `i_ticket`) 
+VALUES ('$titr', '$olaviat', '$matn', '$code_ticket', '$karbar_p_darkhast', '$karbar_darkhast', '$tel_karbar', '$tarikh', '$saat', 'a', '$daste', '$name_daste_insert', '$name_sherkat', '$sherkat', '$code_p_karbar_anjam', '$name_karbar_anjam', '', '', '$log_txt', '$last_activity', NULL);";
 
 $code_pasokh="G-".time()."-".rand(11,99);
-// این کوئری بررسی شود
 $Qery.="INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
-VALUES ('$code_pasokh', '$code_ticket', '$code_p_run', '$name_karbar_run', '$karbar_darkhast', '$karbar_darkhast', '$matn', '$tarikh', '$saat', 'm', 'y', '', '', NULL);";
+VALUES ('$code_pasokh', '$code_ticket', '$code_p_run', '$name_karbar_run', '$code_karbar2_init', '$name_karbar2_init', '$matn', '$tarikh', '$saat', 'm', '$oksee_init', '', '', NULL);";
 
 
 

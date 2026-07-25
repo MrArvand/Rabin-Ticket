@@ -1387,8 +1387,9 @@ if ($current_ticket !== null) {
                     $code_pasokh = $q_ticket2['code'];
 
                     // Check if this is a referral message
+                    $is_dept_ref = (isset($q_ticket2['kind']) && $q_ticket2['kind'] == 'dept_ref');
                     $is_referral = (isset($q_ticket2['kind']) && $q_ticket2['kind'] == 'referral') ||
-                        (!empty($q_ticket2['code_karbar2']) && !empty($q_ticket2['name_karbar2']) &&
+                        (!$is_dept_ref && !empty($q_ticket2['code_karbar2']) && !empty($q_ticket2['name_karbar2']) &&
                             strpos($q_ticket2['matn'], 'مسئول پاسخگویی') !== false);
 
                     // Check if this is a reopen (status restored) system message
@@ -1404,6 +1405,20 @@ if ($current_ticket !== null) {
                             <span>
                                 <i class="bi <?php echo $icon_sys; ?>"></i>
                                 <?php echo htmlspecialchars($q_ticket2['matn'], ENT_QUOTES, 'UTF-8'); ?>
+                                <span style="margin-right: 6px; color: var(--color-text-muted, var(--bs-secondary-color));">•</span>
+                                <?php echo $q_ticket2['tarikh_sabt']; ?> - <?php echo $q_ticket2['saat_sabt']; ?>
+                            </span>
+                        </div>
+                    <?php
+                    } elseif ($is_dept_ref) {
+                        $sender_user_name = !empty($q_ticket2['name_karbar2']) ? $q_ticket2['name_karbar2'] : 'کاربر';
+                        $department_name_ref = !empty($q_ticket2['matn']) ? $q_ticket2['matn'] : 'دپارتمان';
+                    ?>
+                        <div class="referral-divider">
+                            <span>
+                                <i class="bi bi-building"></i>
+                                درخواست پشتیبانی توسط <strong><?php echo htmlspecialchars($sender_user_name); ?></strong>
+                                به دپارتمان <strong><?php echo htmlspecialchars($department_name_ref); ?></strong> ارجاع شد
                                 <span style="margin-right: 6px; color: var(--color-text-muted, var(--bs-secondary-color));">•</span>
                                 <?php echo $q_ticket2['tarikh_sabt']; ?> - <?php echo $q_ticket2['saat_sabt']; ?>
                             </span>
@@ -1931,23 +1946,19 @@ if ($current_ticket !== null) {
     }
 
     // Only mark messages as read if user is the creator OR the assigned handler
-    // This prevents admins from marking messages as read when just viewing others' tickets
+    // Strict per-user: normal replies use code_karbar2; referral/dept_ref rows use code_karbar_sabt = assignee
     if ($is_ticket_creator || $is_assigned_handler) {
-        if ($is_ticket_creator) {
-            // If user is the ticket creator, mark ALL unread responses as read
-            $Qery = "UPDATE `pasokh` SET
+        $Qery = "UPDATE `pasokh` SET
        `oksee` = 'y',
         `tarikh_see` = '$tarikh',
          `saat_see` = '$saat'
-       WHERE (`code_ticket` ='$code_escaped' AND oksee = 'n'); ";
-        } else {
-            // If user is the assigned handler (but not creator), mark responses directed to them
-            $Qery = "UPDATE `pasokh` SET
-       `oksee` = 'y',
-        `tarikh_see` = '$tarikh',
-         `saat_see` = '$saat'
-       WHERE (`code_ticket` ='$code_escaped' AND oksee = 'n' AND (code_karbar2 = '$code_ghl_escaped' || code_karbar2 IS NULL || code_karbar2 = '')); ";
-        }
+       WHERE `code_ticket` ='$code_escaped' AND oksee = 'n'
+         AND (
+           (code_karbar2 = '$code_ghl_escaped'
+            AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_ghl_escaped')
+            AND (kind IS NULL OR kind = '' OR kind NOT IN ('referral', 'dept_ref')))
+           OR (kind IN ('referral', 'dept_ref') AND code_karbar_sabt = '$code_ghl_escaped')
+         ); ";
 
         if ($Link->query($Qery) === TRUE) {
             // Successfully marked as read

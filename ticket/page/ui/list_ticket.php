@@ -484,14 +484,21 @@ $sn_ticket = str_p('sn_ticket');
                             $Query_list = "SELECT ticket.*,
                                      COALESCE(pasokh_counts_creator.new_answers_count, 0) as new_answers_creator,
                                      COALESCE(pasokh_counts_creator.new_answers_count, 0) as has_new_responses,
-                                     COALESCE(latest_response.last_response_time, CONCAT(ticket.tarikh_sabt, ' ', ticket.saat_sabt)) as sort_time
+                                     COALESCE(NULLIF(ticket.last_activity, ''), latest_response.last_response_time, CONCAT(ticket.tarikh_sabt, ' ', ticket.saat_sabt)) as sort_time
                                      FROM ticket
                                      LEFT JOIN (
                                          SELECT code_ticket, COUNT(*) as new_answers_count
                                          FROM pasokh
                                          WHERE oksee = 'n'
-                                         AND matn NOT LIKE '%$monhh_escaped%'
-                                         AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_p_run_escaped')
+                                         AND (
+                                             (kind IN ('referral', 'dept_ref') AND code_karbar_sabt = '$code_p_run_escaped')
+                                             OR (
+                                                 (kind IS NULL OR kind = '' OR kind NOT IN ('referral', 'dept_ref'))
+                                                 AND matn NOT LIKE '%$monhh_escaped%'
+                                                 AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_p_run_escaped')
+                                                 AND code_karbar2 = '$code_p_run_escaped'
+                                             )
+                                         )
                                          GROUP BY code_ticket
                                      ) pasokh_counts_creator ON ticket.code = pasokh_counts_creator.code_ticket
                                      LEFT JOIN (

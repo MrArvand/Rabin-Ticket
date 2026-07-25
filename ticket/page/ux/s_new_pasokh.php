@@ -51,14 +51,32 @@ if ($code_ticket != "" || $matn_pasokh != "" || $code_p_run != "") {
   // Escape user input for SQL
   $matn_pasokh_escaped = mysqli_real_escape_string($Link, $matn_pasokh);
   $code_ticket_escaped = mysqli_real_escape_string($Link, $code_ticket);
+  $last_activity = mysqli_real_escape_string($Link, trim($tarikh . ' ' . $saat));
+
+  // Issuer reply must notify current assignee (strict per-user unread)
+  $is_ticket_creator = ($code_p_run == $code_karbar2);
+  $is_assigned_handler = ($code_p_run == $code_karbar_anjam);
+  if ($is_ticket_creator || !$is_assigned_handler) {
+    $reply_to_code = $code_karbar_anjam;
+    $reply_to_name = $name_karbar5;
+  } else {
+    $reply_to_code = $code_karbar2;
+    $reply_to_name = $name_karbar2;
+  }
+  $reply_to_code_escaped = mysqli_real_escape_string($Link, (string) $reply_to_code);
+  $reply_to_name_escaped = mysqli_real_escape_string($Link, (string) $reply_to_name);
 
   $Qery = "INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
-VALUES ('$code_pasokh', '$code_ticket_escaped', '$code_p_run', '$name_karbar_run', '', '', '$matn_pasokh_escaped', '$tarikh', '$saat', 'm', 'n', '', '', NULL);";
+VALUES ('$code_pasokh', '$code_ticket_escaped', '$code_p_run', '$name_karbar_run', '$reply_to_code_escaped', '$reply_to_name_escaped', '$matn_pasokh_escaped', '$tarikh', '$saat', 'm', 'n', '', '', NULL);";
 
   if ($vaziat_tt != "a") {
-
     $Qery .= "UPDATE `ticket` SET
- `vaziat` = 'm' 
+ `vaziat` = 'm',
+ `last_activity` = '$last_activity'
+ WHERE `code` ='$code_ticket_escaped'; ";
+  } else {
+    $Qery .= "UPDATE `ticket` SET
+ `last_activity` = '$last_activity'
  WHERE `code` ='$code_ticket_escaped'; ";
   }
 

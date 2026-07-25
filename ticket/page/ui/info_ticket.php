@@ -554,6 +554,8 @@ if ($current_ticket !== null) {
       border-radius: 10px;
       font-size: 0.85rem;
       font-weight: 500;
+      font-family: inherit;
+      line-height: inherit;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -561,6 +563,13 @@ if ($current_ticket !== null) {
       transition: all 0.2s ease;
       border: none;
       cursor: pointer;
+    }
+
+    button.action-btn {
+      font-family: inherit;
+      line-height: inherit;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .action-btn:hover {
@@ -886,8 +895,9 @@ if ($current_ticket !== null) {
           $code_pasokh = $q_ticket2['code'];
 
           // Check if this is a referral message
+          $is_dept_ref = (isset($q_ticket2['kind']) && $q_ticket2['kind'] == 'dept_ref');
           $is_referral = (isset($q_ticket2['kind']) && $q_ticket2['kind'] == 'referral') ||
-            (!empty($q_ticket2['code_karbar2']) && !empty($q_ticket2['name_karbar2']) &&
+            (!$is_dept_ref && !empty($q_ticket2['code_karbar2']) && !empty($q_ticket2['name_karbar2']) &&
               strpos($q_ticket2['matn'], 'مسئول پاسخگویی') !== false);
 
           // Check if this is a reopen (status restored) system message
@@ -903,6 +913,20 @@ if ($current_ticket !== null) {
               <span>
                 <i class="bi <?php echo $icon_sys; ?>"></i>
                 <?php echo htmlspecialchars($q_ticket2['matn'], ENT_QUOTES, 'UTF-8'); ?>
+                <span style="margin-right: 6px; color: var(--bs-gray-400);">•</span>
+                <?php echo $q_ticket2['tarikh_sabt']; ?> - <?php echo $q_ticket2['saat_sabt']; ?>
+              </span>
+            </div>
+          <?php
+          } elseif ($is_dept_ref) {
+            $sender_user_name = !empty($q_ticket2['name_karbar2']) ? $q_ticket2['name_karbar2'] : 'کاربر';
+            $department_name_ref = !empty($q_ticket2['matn']) ? $q_ticket2['matn'] : 'دپارتمان';
+          ?>
+            <div class="referral-divider">
+              <span>
+                <i class="bi bi-building"></i>
+                درخواست پشتیبانی توسط <strong><?php echo htmlspecialchars($sender_user_name); ?></strong>
+                به دپارتمان <strong><?php echo htmlspecialchars($department_name_ref); ?></strong> ارجاع شد
                 <span style="margin-right: 6px; color: var(--bs-gray-400);">•</span>
                 <?php echo $q_ticket2['tarikh_sabt']; ?> - <?php echo $q_ticket2['saat_sabt']; ?>
               </span>
@@ -1016,6 +1040,19 @@ if ($current_ticket !== null) {
             <i class="bi bi-arrow-counterclockwise"></i> باز کردن مجدد تیکت
           </a>
         <?php } ?>
+
+        <?php
+        $can_dept_refer = (
+          isset($_SESSION['code_p'])
+          && isset($current_ticket['code_p_karbar'])
+          && $current_ticket['code_p_karbar'] == $_SESSION['code_p']
+          && !in_array($current_ticket['vaziat'], ['b', 'c'], true)
+        );
+        if ($can_dept_refer) { ?>
+          <button type="button" class="action-btn action-btn-info" data-bs-toggle="modal" data-bs-target="#dept_refer_modal">
+            <i class="bi bi-building"></i> ارجاع به دپارتمان جدید
+          </button>
+        <?php } ?>
       </div>
     <?php } ?>
 
@@ -1073,6 +1110,115 @@ if ($current_ticket !== null) {
     <?php } ?>
   </div>
 
+  <?php if (!empty($can_dept_refer)) { ?>
+  <!-- Modal: refer to another department (default user only) -->
+  <div class="modal fade" id="dept_refer_modal" tabindex="-1" aria-labelledby="deptReferModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deptReferModalTitle">
+            <i class="bi bi-building me-2"></i>ارجاع به دپارتمان جدید
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small mb-3">
+            تیکت به کاربر پیش‌فرض دپارتمان انتخاب‌شده ارجاع می‌شود. امکان انتخاب کاربر وجود ندارد.
+          </p>
+          <div class="mb-3">
+            <div class="input-group">
+              <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+              <input type="text" class="form-control border-start-0" id="deptFilter" placeholder="جستجوی دپارتمان..." autocomplete="off">
+            </div>
+          </div>
+          <div style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-hover m-0" id="deptTable">
+              <thead class="sticky-top" style="background: var(--bs-gray-200);">
+                <tr>
+                  <th>دپارتمان</th>
+                  <th>عملیات</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php
+                require_once __DIR__ . '/../../inf/restricted_department_sadgan_fx.php';
+                $current_user_code_for_department_visibility = isset($_SESSION['code_p']) ? trim((string) $_SESSION['code_p']) : '';
+                $can_view_restricted_department = can_view_restricted_department($current_user_code_for_department_visibility);
+                $current_daste = isset($current_ticket['daste']) ? (string) $current_ticket['daste'] : '';
+                $Query_dep_modal = "SELECT id, name, default_user_code, default_user_name FROM departman WHERE vaziat = 'y' ORDER BY name ASC LIMIT 200";
+                if ($Result_dep_modal = mysqli_query($Link, $Query_dep_modal)) {
+                  while ($q_dep_modal = mysqli_fetch_array($Result_dep_modal)) {
+                    if (!$can_view_restricted_department && is_restricted_department($q_dep_modal['id'] ?? '')) {
+                      continue;
+                    }
+                    if ((string) $q_dep_modal['id'] === $current_daste) {
+                      continue;
+                    }
+                    $has_default = !empty($q_dep_modal['default_user_code']) && !empty($q_dep_modal['default_user_name']);
+                    $dep_name_lower = mb_strtolower((string) $q_dep_modal['name'], 'UTF-8');
+                ?>
+                    <tr class="dept-row" data-name="<?php echo htmlspecialchars($dep_name_lower, ENT_QUOTES, 'UTF-8'); ?>">
+                      <td>
+                        <div class="d-flex flex-column">
+                          <strong><?php echo htmlspecialchars($q_dep_modal['name'], ENT_QUOTES, 'UTF-8'); ?></strong>
+                          <?php if ($has_default) { ?>
+                            <small class="text-muted">پاسخگوی پیش‌فرض: <?php echo htmlspecialchars($q_dep_modal['default_user_name'], ENT_QUOTES, 'UTF-8'); ?></small>
+                          <?php } else { ?>
+                            <small class="text-danger">کاربر پیش‌فرض تعریف نشده</small>
+                          <?php } ?>
+                        </div>
+                      </td>
+                      <td>
+                        <?php if ($has_default) { ?>
+                          <a href="?page=erja_department&code_ticket=<?php echo urlencode($code); ?>&daste=<?php echo urlencode($q_dep_modal['id']); ?><?php echo $p_param; ?>"
+                             class="btn btn-sm btn-success"
+                             onclick="return confirm('تیکت به دپارتمان «<?php echo htmlspecialchars($q_dep_modal['name'], ENT_QUOTES, 'UTF-8'); ?>» و کاربر پیش‌فرض آن ارجاع شود؟');">
+                            <i class="bi bi-check2"></i> ارجاع
+                          </a>
+                        <?php } else { ?>
+                          <button type="button" class="btn btn-sm btn-secondary" disabled>غیرفعال</button>
+                        <?php } ?>
+                      </td>
+                    </tr>
+                <?php
+                  }
+                }
+                ?>
+              </tbody>
+            </table>
+          </div>
+          <div id="deptNoResults" class="text-center text-muted py-4" style="display: none;">
+            <i class="bi bi-search fs-1 d-block mb-2" style="opacity: 0.5;"></i>
+            <p class="mb-0">دپارتمانی یافت نشد</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var filterInput = document.getElementById('deptFilter');
+      if (!filterInput) return;
+      filterInput.addEventListener('input', function () {
+        var q = (this.value || '').toLowerCase().trim();
+        var rows = document.querySelectorAll('#deptTable .dept-row');
+        var visible = 0;
+        rows.forEach(function (row) {
+          var name = row.getAttribute('data-name') || '';
+          var show = !q || name.indexOf(q) !== -1;
+          row.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        var empty = document.getElementById('deptNoResults');
+        if (empty) empty.style.display = visible ? 'none' : 'block';
+      });
+    });
+  </script>
+  <?php } ?>
+
   <?php
   // Update visit records
   $code_ghl = $_SESSION['code_p'];
@@ -1091,23 +1237,19 @@ if ($current_ticket !== null) {
   }
 
   // Only mark messages as read if user is the creator OR the assigned handler
-  // This prevents admins from marking messages as read when just viewing others' tickets
+  // Strict per-user: normal replies use code_karbar2; referral/dept_ref rows use code_karbar_sabt = assignee
   if ($is_ticket_creator || $is_assigned_handler) {
-    if ($is_ticket_creator) {
-      // If user is the ticket creator, mark ALL unread responses as read
-      $Qery = "UPDATE `pasokh` SET
+    $Qery = "UPDATE `pasokh` SET
          `oksee` = 'y',
           `tarikh_see` = '$tarikh',
            `saat_see` = '$saat'
-         WHERE (`code_ticket` ='$code' AND oksee = 'n'); ";
-    } else {
-      // If user is the assigned handler (but not creator), mark responses directed to them
-      $Qery = "UPDATE `pasokh` SET
-         `oksee` = 'y',
-          `tarikh_see` = '$tarikh',
-           `saat_see` = '$saat'
-         WHERE (`code_ticket` ='$code' AND oksee = 'n' AND (code_karbar2 = '$code_ghl_escaped' || code_karbar2 IS NULL || code_karbar2 = '')); ";
-    }
+         WHERE `code_ticket` ='$code' AND oksee = 'n'
+           AND (
+             (code_karbar2 = '$code_ghl_escaped'
+              AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_ghl_escaped')
+              AND (kind IS NULL OR kind = '' OR kind NOT IN ('referral', 'dept_ref')))
+             OR (kind IN ('referral', 'dept_ref') AND code_karbar_sabt = '$code_ghl_escaped')
+           ); ";
 
     if ($Link->query($Qery) === TRUE) {
       // Successfully marked as read

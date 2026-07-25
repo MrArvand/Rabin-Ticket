@@ -487,7 +487,15 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
                                 INNER JOIN pasokh p ON t.code = p.code_ticket
                                 WHERE t.code_p_karbar = '$code_p_run_notif_escaped'
                                 AND p.oksee = 'n'
-                                AND p.matn NOT LIKE '%$monhh_notif%'
+                                AND (
+                                    (p.kind IN ('referral', 'dept_ref') AND p.code_karbar_sabt = '$code_p_run_notif_escaped')
+                                    OR (
+                                        (p.kind IS NULL OR p.kind = '' OR p.kind NOT IN ('referral', 'dept_ref'))
+                                        AND p.matn NOT LIKE '%$monhh_notif%'
+                                        AND (p.code_karbar_sabt IS NULL OR p.code_karbar_sabt = '' OR p.code_karbar_sabt != '$code_p_run_notif_escaped')
+                                        AND p.code_karbar2 = '$code_p_run_notif_escaped'
+                                    )
+                                )
                                 GROUP BY t.code, t.titr, t.vaziat, t.olaviat, t.name_daste
                                 
                                 UNION ALL
@@ -502,8 +510,15 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
                                 WHERE t.code_p_karbar_anjam = '$code_p_run_notif_escaped'
                                 AND t.code_p_karbar != '$code_p_run_notif_escaped'
                                 AND p.oksee = 'n'
-                                AND p.matn NOT LIKE '%$monhh_notif%'
-                                AND (p.code_karbar2 = '$code_p_run_notif_escaped' OR p.code_karbar2 IS NULL OR p.code_karbar2 = '')
+                                AND (
+                                    (p.kind IN ('referral', 'dept_ref') AND p.code_karbar_sabt = '$code_p_run_notif_escaped')
+                                    OR (
+                                        (p.kind IS NULL OR p.kind = '' OR p.kind NOT IN ('referral', 'dept_ref'))
+                                        AND p.matn NOT LIKE '%$monhh_notif%'
+                                        AND (p.code_karbar_sabt IS NULL OR p.code_karbar_sabt = '' OR p.code_karbar_sabt != '$code_p_run_notif_escaped')
+                                        AND p.code_karbar2 = '$code_p_run_notif_escaped'
+                                    )
+                                )
                                 GROUP BY t.code, t.titr, t.vaziat, t.olaviat, t.name_daste
                                 
                                 ORDER BY latest_msg_time DESC
@@ -538,11 +553,19 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
                                 $ticket_codes_str = implode(',', $ticket_codes);
 
                                 // Get all unread messages for these tickets, then filter in PHP
-                                $query_messages = "SELECT p.code_ticket, p.i_pasokh, p.matn, p.name_karbar_sabt, p.tarikh_sabt, p.saat_sabt
+                                $query_messages = "SELECT p.code_ticket, p.i_pasokh, p.matn, p.name_karbar_sabt, p.tarikh_sabt, p.saat_sabt, p.kind, p.name_karbar2
                                     FROM pasokh p
                                     WHERE p.code_ticket IN ($ticket_codes_str)
                                     AND p.oksee = 'n'
-                                    AND p.matn NOT LIKE '%$monhh_notif%'
+                                    AND (
+                                        (p.kind IN ('referral', 'dept_ref') AND p.code_karbar_sabt = '$code_p_run_notif_escaped')
+                                        OR (
+                                            (p.kind IS NULL OR p.kind = '' OR p.kind NOT IN ('referral', 'dept_ref'))
+                                            AND p.matn NOT LIKE '%$monhh_notif%'
+                                            AND (p.code_karbar_sabt IS NULL OR p.code_karbar_sabt = '' OR p.code_karbar_sabt != '$code_p_run_notif_escaped')
+                                            AND p.code_karbar2 = '$code_p_run_notif_escaped'
+                                        )
+                                    )
                                     ORDER BY p.code_ticket, p.i_pasokh DESC";
 
                                 if ($result_messages = mysqli_query($Link, $query_messages)) {
@@ -697,9 +720,18 @@ if ($_SESSION['ok_login_user_i'] != 'y') {
                                         <?php foreach ($unread_notifications as $ticket_code => $notification) {
                                             $ticket_url = "?page=info_ticket&code=" . $notification['ticket_code'];
                                             $first_message = $notification['messages'][0];
-                                            $message_preview = mb_substr(strip_tags($first_message['matn']), 0, 80, 'UTF-8');
-                                            if (mb_strlen($first_message['matn'], 'UTF-8') > 80) {
-                                                $message_preview .= '...';
+                                            if (isset($first_message['kind']) && $first_message['kind'] === 'referral') {
+                                                $referrer_label = !empty($first_message['name_karbar2']) ? $first_message['name_karbar2'] : 'مدیر سیستم';
+                                                $message_preview = 'ارجاع تیکت توسط ' . $referrer_label;
+                                            } elseif (isset($first_message['kind']) && $first_message['kind'] === 'dept_ref') {
+                                                $referrer_label = !empty($first_message['name_karbar2']) ? $first_message['name_karbar2'] : 'کاربر';
+                                                $dept_label = !empty($first_message['matn']) ? $first_message['matn'] : 'دپارتمان';
+                                                $message_preview = 'ارجاع به دپارتمان ' . $dept_label . ' توسط ' . $referrer_label;
+                                            } else {
+                                                $message_preview = mb_substr(strip_tags($first_message['matn']), 0, 80, 'UTF-8');
+                                                if (mb_strlen($first_message['matn'], 'UTF-8') > 80) {
+                                                    $message_preview .= '...';
+                                                }
                                             }
 
                                             // Get status and priority info

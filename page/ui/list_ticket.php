@@ -1431,25 +1431,38 @@ if ($selected_tags_str !== '') {
                                      COALESCE(pasokh_counts_assigned.new_answers_count, 0) as new_answers_assigned,
                                      COALESCE(pasokh_counts_creator.new_answers_count, 0) as new_answers_creator,
                                      CASE WHEN ticket.code_p_karbar = '$code_p_run_escaped' THEN COALESCE(pasokh_counts_creator.new_answers_count, 0) ELSE COALESCE(pasokh_counts_assigned.new_answers_count, 0) END as has_new_responses,
-                                     COALESCE(latest_response.last_response_time, CONCAT(ticket.tarikh_sabt, ' ', ticket.saat_sabt)) as sort_time
+                                     COALESCE(NULLIF(ticket.last_activity, ''), latest_response.last_response_time, CONCAT(ticket.tarikh_sabt, ' ', ticket.saat_sabt)) as sort_time
                                      FROM ticket 
                                      LEFT JOIN departman ON ticket.daste = departman.id
                                      LEFT JOIN ticket_bookmarks ON ticket.code COLLATE utf8mb4_general_ci = ticket_bookmarks.ticket_code COLLATE utf8mb4_general_ci AND ticket_bookmarks.code_p_karbar = '$code_p_run_escaped'
                                      LEFT JOIN (
                                          SELECT code_ticket, COUNT(*) as new_answers_count
                                          FROM pasokh
-                                         WHERE oksee = 'n' 
-                                         AND matn NOT LIKE '%$monhh_escaped%'
-                                         AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_p_run_escaped')
-                                         AND (code_karbar2 = '$code_p_run_escaped' OR code_karbar2 IS NULL OR code_karbar2 = '')
+                                         WHERE oksee = 'n'
+                                         AND (
+                                             (kind IN ('referral', 'dept_ref') AND code_karbar_sabt = '$code_p_run_escaped')
+                                             OR (
+                                                 (kind IS NULL OR kind = '' OR kind NOT IN ('referral', 'dept_ref'))
+                                                 AND matn NOT LIKE '%$monhh_escaped%'
+                                                 AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_p_run_escaped')
+                                                 AND code_karbar2 = '$code_p_run_escaped'
+                                             )
+                                         )
                                          GROUP BY code_ticket
                                      ) pasokh_counts_assigned ON ticket.code = pasokh_counts_assigned.code_ticket
                                      LEFT JOIN (
                                          SELECT code_ticket, COUNT(*) as new_answers_count
                                          FROM pasokh
-                                         WHERE oksee = 'n' 
-                                         AND matn NOT LIKE '%$monhh_escaped%'
-                                         AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_p_run_escaped')
+                                         WHERE oksee = 'n'
+                                         AND (
+                                             (kind IN ('referral', 'dept_ref') AND code_karbar_sabt = '$code_p_run_escaped')
+                                             OR (
+                                                 (kind IS NULL OR kind = '' OR kind NOT IN ('referral', 'dept_ref'))
+                                                 AND matn NOT LIKE '%$monhh_escaped%'
+                                                 AND (code_karbar_sabt IS NULL OR code_karbar_sabt = '' OR code_karbar_sabt != '$code_p_run_escaped')
+                                                 AND code_karbar2 = '$code_p_run_escaped'
+                                             )
+                                         )
                                          GROUP BY code_ticket
                                      ) pasokh_counts_creator ON ticket.code = pasokh_counts_creator.code_ticket
                                      LEFT JOIN (
@@ -1459,7 +1472,6 @@ if ($selected_tags_str !== '') {
                                      ) latest_response ON ticket.code = latest_response.code_ticket
                                      WHERE ($shart) 
                                      ORDER BY is_user_ticket DESC, 
-                                              is_unassigned DESC, 
                                               has_new_responses DESC, 
                                               sort_time DESC" . $limit_clause;
 

@@ -212,6 +212,8 @@ if (!empty($code_ticket) && !empty($karbar_f)) {
 
         $code_pasokh = "G-" . time() . "-" . rand(11, 99);
         $matn_pasokh = " مسئول پاسخگویی به شما " . $name_kk . " می باشد و در اولین فرصت خدمات پشتیبانی ارائه می گردد. با تشکر از شما";
+        $last_activity = mysqli_real_escape_string($Link, trim($tarikh . ' ' . $saat));
+        $old_assignee = isset($row['code_p_karbar_anjam']) ? $row['code_p_karbar_anjam'] : '';
 
         // Escape variables for SQL
         $karbar_f_escaped_sql = mysqli_real_escape_string($Link, $karbar_f);
@@ -221,18 +223,32 @@ if (!empty($code_ticket) && !empty($karbar_f)) {
         $matn_pasokh_escaped = mysqli_real_escape_string($Link, $matn_pasokh);
         $code_admin_refer_escaped = mysqli_real_escape_string($Link, $code_admin_refer);
         $name_admin_refer_escaped = mysqli_real_escape_string($Link, $name_admin_refer);
+        $old_assignee_escaped = mysqli_real_escape_string($Link, $old_assignee);
 
         $Qery = "UPDATE `ticket` SET 
                  `vaziat` = 'm', 
                  `code_p_karbar_anjam` = '$karbar_f_escaped_sql', 
                  `name_karbar_anjam` = '$name_kk_escaped', 
-                 `log_txt` = '$log_txt_escaped' 
+                 `log_txt` = '$log_txt_escaped',
+                 `last_activity` = '$last_activity'
                  WHERE `code` ='$code_ticket_escaped'; ";
 
-        // Store referral info: code_karbar2/name_karbar2 = referring admin, kind = 'referral'
+        // System referral divider only (UI: توسط X به کاربر پشتیبان Y ارجاع شد).
+        // Unread for new assignee: oksee='n' + code_karbar_sabt = assignee (see list/bell filters).
         $Qery .= "INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `kind`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
                  VALUES ('$code_pasokh_escaped', '$code_ticket_escaped', '$karbar_f_escaped_sql', '$name_kk_escaped', '$code_admin_refer_escaped', '$name_admin_refer_escaped', '$matn_pasokh_escaped', '$tarikh', '$saat', 'm', 'referral', 'n', '', '', NULL);";
 
+        // Clear stale unread directed at previous assignee (or empty recipient leftovers)
+        if ($old_assignee !== '' && $old_assignee !== $karbar_f) {
+            $Qery .= "UPDATE `pasokh` SET `oksee` = 'y', `tarikh_see` = '$tarikh', `saat_see` = '$saat'
+                      WHERE `code_ticket` = '$code_ticket_escaped' AND `oksee` = 'n'
+                      AND `code` != '$code_pasokh_escaped'
+                      AND (
+                        `code_karbar2` = '$old_assignee_escaped'
+                        OR `code_karbar2` IS NULL OR `code_karbar2` = ''
+                        OR (`kind` IN ('referral', 'dept_ref') AND `code_karbar_sabt` = '$old_assignee_escaped')
+                      ); ";
+        }
         // Drop referrer's bookmark: after ارجاع they may no longer be code_p_karbar / code_p_karbar_anjam,
         // so list_ticket would block removing it while the row still shows under bookmarked filter.
         if ($code_admin_refer !== '') {

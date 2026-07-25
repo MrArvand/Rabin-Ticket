@@ -13,6 +13,7 @@ if($page=="end_ticket")include('page/ux/end_ticket.php');
 if($page=="s_reopen_ticket")include('page/ux/s_reopen_ticket.php'); 
 if($page=="anjam_ticket")include('page/ux/anjam_ticket.php'); 
 if($page=="s_new_ticket")include('page/ux/s_new_ticket.php'); 
+if($page=="erja_department")include('page/ux/erja_department.php');
 
 
 

@@ -41,7 +41,14 @@ if (!empty($code_p_run)) {
                      INNER JOIN ticket t ON p.code_ticket = t.code 
                      WHERE p.oksee = 'n' 
                      AND (t.code_p_karbar = '$code_p_run_escaped' OR t.code_p_karbar_anjam = '$code_p_run_escaped')
-                     AND (p.code_karbar_sabt IS NULL OR p.code_karbar_sabt = '' OR p.code_karbar_sabt != '$code_p_run_escaped')";
+                     AND (
+                         (p.kind IN ('referral', 'dept_ref') AND p.code_karbar_sabt = '$code_p_run_escaped')
+                         OR (
+                             (p.kind IS NULL OR p.kind = '' OR p.kind NOT IN ('referral', 'dept_ref'))
+                             AND (p.code_karbar_sabt IS NULL OR p.code_karbar_sabt = '' OR p.code_karbar_sabt != '$code_p_run_escaped')
+                             AND p.code_karbar2 = '$code_p_run_escaped'
+                         )
+                     )";
     if ($Result_unread = mysqli_query($Link, $Query_unread)) {
         $row_unread = mysqli_fetch_array($Result_unread);
         $t_unread = (int)$row_unread['total'];

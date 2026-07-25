@@ -74,10 +74,13 @@ if (!empty($q_ticket) && ($code_ticket != "" || $matn_pasokh != "" || $code_p_ru
     }
 
     // If this is the first reply (no previous pasokh with vaziat != 'a') and ticket status is 'a'
+    $last_activity = mysqli_real_escape_string($Link, trim($tarikh . ' ' . $saat));
     if ($pasokh_count == 0 && $current_ticket_status === 'a') {
         $is_first_reply = true;
-        // Update ticket status to 'm' (در حال بررسی)
-        $Qery = "UPDATE ticket SET vaziat = 'm' WHERE code = '$code_ticket_escaped'; ";
+        // Update ticket status to 'm' (در حال بررسی) and bump activity
+        $Qery = "UPDATE ticket SET vaziat = 'm', last_activity = '$last_activity' WHERE code = '$code_ticket_escaped'; ";
+    } else {
+        $Qery = "UPDATE ticket SET last_activity = '$last_activity' WHERE code = '$code_ticket_escaped'; ";
     }
 
     $Qery .= "INSERT INTO `pasokh` (`code`, `code_ticket`, `code_karbar_sabt`, `name_karbar_sabt`, `code_karbar2`, `name_karbar2`, `matn`, `tarikh_sabt`, `saat_sabt`, `vaziat`, `oksee`, `tarikh_see`, `saat_see`, `i_pasokh`) 
